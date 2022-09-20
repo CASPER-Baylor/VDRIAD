@@ -1,5 +1,4 @@
 #include "pcry.cuh"
-#define BLOCK 32
 
 __global__ void pcryCalculate_ACC(
                   float* dustPosX, float* dustPosY, float* dustPosZ,
@@ -26,30 +25,54 @@ __global__ void pcryCalculate_ACC(
 				  float BETA,
 				  int 	NUM_PARTICLES){
 			  
-	// SAVE IN SHARED MEMORY
-	float 	acc;
-    float   epsilon;
-    float   Ez;
-    float   x1;                             // Stores the x position of the ith particle
-    float   y1;                             // Stores the y position of the ith particle
-    float   z1;                             // Stores the z position of the ith particle
-    float   zi, zi2;
+	// VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
+	float 	acc;            // Temporarily stores acceleration
+    float   epsilon;        // Softening factor
+    float   Ez;             // Electric field by the lower electrode
+
+    // ITH PARTICLE
+    float   x1;             // Stores the x position of the ith particle
+    float   y1;             // Stores the y position of the ith particle
+    float   z1;             // Stores the z position of the ith particle
+    float   ax1;            // x component of the accelaration of the ith particle
+    float   ay1;            // y component of the acceleration of the ith particle
+    float   az1;            // z component of the acceleration of the ith particle
+    float   mass1;          // mass of the ith particle
+    float   charge1;        // charge of the ith particle
+
+    // JTH PARTICLE
+    float   x2;             // Stores the x position of the jth particle
+    float   y2;             // Stores the y position of the jth particle
+    float   z2;             // z position of the jth particle
+    float   ax2;            // x component of the acceleration of the jth particle
+    float   ay2;            // y component of the acceleration of the jth particle
+    float   az2;            // z component of the acceleration of the jth particle
+
+    // OTHER VARIABLES
+    float   dx;             // Distance between the particles in the x direction
+    float   dy;             // Distance between the particles in the y direction
+    float   dz;             // Distance between the particles in the z direction
+    float   r_squared;      // Norm squared
+    float   r;              // Eucledian distance between the particles
+    float   r_soft;         // Eucledian distance with softening factor
+    float   r_min;
+    float   z_min;
+    float   yourId;
+    float   nn_id;
+
+
+    float   zi,zi2;
 	float 	accX_i, accY_i, accZ_i; 
 	float 	posX_i, posY_i, posZ_i;
-	float 	dx, dy, dz;
-	float   r, r_squared, r_min, z_min;
-	int 	yourId, nn_id;
 	float 	charge_i, mass_i;
 
-	
+	// VARIABLES TO BE ALLOCATED IN SHARED MEMORY
 	__shared__ float posX_j[BLOCK], posY_j[BLOCK], posZ_j[BLOCK];
 	__shared__ float charge_j[BLOCK], wakeCharge_j[BLOCK], wakeLength_j[BLOCK];
-	
-	
-	int i = threadIdx.x + blockDim.x*blockIdx.x;
 
-	// Making sure we are not out working past the number of particles.
-	if(i < NUM_PARTICLES){
+    //------------------------------------------------------------------------------------------------------------------
+	int i = threadIdx.x + blockDim.x*blockIdx.x;
+	if(i < NUM_PARTICLES){              // Making sure we are not out working past the number of particles.
         epsilon  = 2 * dustRadius[i];
 
 		// Save positions
@@ -75,7 +98,7 @@ __global__ void pcryCalculate_ACC(
 		wakeDistanceZ[i] = 10000.0f;
 		wakeID[i]	 = -1;
 		
-		// CALCULATING FORCES
+		// CALCULATING INTERPARTICLE FORCES-----------------------------------------------------------------------------
 		for(int j = 0; j < gridDim.x; j++){
 			// Save into shared memory
 			posX_j[threadIdx.x] 	= dustPosX[threadIdx.x + blockDim.x*j];
@@ -99,7 +122,7 @@ __global__ void pcryCalculate_ACC(
 
                     // Norm squared with smoothing factor
                     r_squared  	= dx*dx + dy*dy + dz*dz;
-                    r_soft      = sqrt(r_squared + (epsilon * epsilon))
+                    r_soft      = sqrt(r_squared + (epsilon * epsilon));
                     r		    = sqrt(r_squared);
                     
                     // DUST-DUST YUKAWA FORCE
@@ -144,14 +167,8 @@ __global__ void pcryCalculate_ACC(
 		wakeDistanceR[i]    		= r_min;	// Saving minimum total distance
 		wakeDistanceZ[i]			= z_min;	// Saving minimum y distance
 		wakeID[i]			 	    = nn_id; 	// Saving the nearest neighbor's ID
-				
-		// Getting dust to bottom plate force.
-		// e field is bottomePlatesCharge*(posMeY - sheathHeight). This is the linear force that starts at the sheath. We got this from Dr. Mathews.
-		/*
-		if(posZ_i < SHEATH_HEIGHT){
-			
-			accZ_i += -charge_i * (E_0/0.0022) * (posZ_i - SHEATH_HEIGHT);
-		}*/
+
+        // CALCULATING EXTERNAL FORCES----------------------------------------------------------------------------------
         zi = posZ_i;
         zi2 = zi * zi;
 
