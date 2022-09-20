@@ -40,13 +40,10 @@ __global__ void pcryCalculate_ACC(
     float   mass1;          // mass of the ith particle
     float   charge1;        // charge of the ith particle
 
-    // JTH PARTICLE
+    // JTH PARTICLE         !! This part should actually not be here, what wee need to replace is the variables below
     float   x2;             // Stores the x position of the jth particle
     float   y2;             // Stores the y position of the jth particle
     float   z2;             // z position of the jth particle
-    float   ax2;            // x component of the acceleration of the jth particle
-    float   ay2;            // y component of the acceleration of the jth particle
-    float   az2;            // z component of the acceleration of the jth particle
 
     // OTHER VARIABLES
     float   dx;             // Distance between the particles in the x direction
@@ -60,8 +57,6 @@ __global__ void pcryCalculate_ACC(
     float   yourId;
     float   nn_id;
 
-
-    float   zi,zi2;
 	float 	accX_i, accY_i, accZ_i; 
 	float 	posX_i, posY_i, posZ_i;
 	float 	charge_i, mass_i;
@@ -76,6 +71,10 @@ __global__ void pcryCalculate_ACC(
         epsilon  = 2 * dustRadius[i];
 
 		// Save positions
+        x1  = dustPosX[i];
+        y1  = dustPosY[i];
+        z1  = dustPosZ[i];
+        
 		posX_i 	 = dustPosX[i];
 		posY_i 	 = dustPosY[i];
 		posZ_i 	 = dustPosZ[i];
@@ -83,6 +82,9 @@ __global__ void pcryCalculate_ACC(
 		// Load other attributes
 		charge_i = dustCharge[i];
 		mass_i	 = dustMass[i];
+
+        mass1   = dustMass[i];
+        charge1 = dustCharge[i];
 		
 		// Initialize forces
 		accX_i 	 = 0.0f;
@@ -169,34 +171,33 @@ __global__ void pcryCalculate_ACC(
 		wakeID[i]			 	    = nn_id; 	// Saving the nearest neighbor's ID
 
         // CALCULATING EXTERNAL FORCES----------------------------------------------------------------------------------
-        zi = posZ_i;
-        zi2 = zi * zi;
-
-		Ez = -8083 + 553373*zi + 2.0e8*zi2 -3.017e10*zi*zi2 + 1.471e12*zi2*zi2 - 2.306e13*zi2*zi2*zi;
-		accZ_i += charge_i * Ez / mass_i;
+		Ez = -8083 + 553373*z1 + 2.0e8*(z1*z1) - 3.017e10*pow(z1,3) + 1.471e12*pow(z1,4) - 2.306e13*pow(z1,5);
+		accZ_i += charge1 * Ez / mass1;
 		
-		// Calculating radial confinement force
-		r  	= sqrt(posX_i*posX_i + posY_i*posY_i);
+		// RADIAL CONFINEMENT FORCE
+		r  	= sqrt(x1*x1+y1*y1);
 		if(r != 0){
 		    acc = charge_i*CELL_CHARGE*pow(r/CELL_RADIUS,12)/mass_i;
 		    accX_i += acc * (posX_i/r);
 		    accY_i += acc * (posY_i/r);
 		}
 
-		
-		// Calculate acceleration due to gravity
+		// GRAVITATIONAL FORCE
 		accZ_i += -GRAVITY;
 		
-		// Calculating drag force
+		// DRAG FORCE
 		accX_i += -BETA * dustVelX[i];
 		accY_i += -BETA * dustVelY[i];
 		accZ_i += -BETA * dustVelZ[i];
-		
+
+        // LOAD FORCES--------------------------------------------------------------------------------------------------
+        // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
+        // force to zero and set its mass, charge and diameter to the base (maybe it was too heavy).
 		if(DUST_RADIUS_MEAN < posZ_i){
 			dustAccX[i] = accX_i;
 			dustAccY[i] = accY_i;
 			dustAccZ[i] = accZ_i;
-		} else{ // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its force to zero and set its mass, charge and diameter to the base (maybe it was too heavy).
+		} else{
 			dustPosZ[i] = SHEATH_HEIGHT;
 
 			dustVelX[i] 	= 0.0;
