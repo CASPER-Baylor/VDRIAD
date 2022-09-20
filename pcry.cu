@@ -5,7 +5,7 @@ __global__ void pcryCalculate_ACC(
                   float* dustPosX, float* dustPosY, float* dustPosZ,
 			  	  float* dustVelX, float* dustVelY, float* dustVelZ,
 			  	  float* dustAccX, float* dustAccY, float* dustAccZ,
-			  	  float* dustRadius,
+                  float* dustRadius,
                   float* dustMass,
                   float* dustCharge,
                   float* wakeCharge,
@@ -21,14 +21,19 @@ __global__ void pcryCalculate_ACC(
 				  float CELL_CHARGE, 
 				  float CELL_HEIGHT, 
 				  float SHEATH_HEIGHT, 
-				  float WAKE_CHARGE_PERCENT, 
-				  float E_0, 
+				  float WAKE_CHARGE_PERCENT,
 				  float GRAVITY, 
 				  float BETA,
 				  int 	NUM_PARTICLES){
 			  
 	// SAVE IN SHARED MEMORY
 	float 	acc;
+    float   epsilon;
+    float   Ez;
+    float   x1;                             // Stores the x position of the ith particle
+    float   y1;                             // Stores the y position of the ith particle
+    float   z1;                             // Stores the z position of the ith particle
+    float   zi, zi2;
 	float 	accX_i, accY_i, accZ_i; 
 	float 	posX_i, posY_i, posZ_i;
 	float 	dx, dy, dz;
@@ -45,6 +50,8 @@ __global__ void pcryCalculate_ACC(
 
 	// Making sure we are not out working past the number of particles.
 	if(i < NUM_PARTICLES){
+        epsilon  = 2 * dustRadius[i];
+
 		// Save positions
 		posX_i 	 = dustPosX[i];
 		posY_i 	 = dustPosY[i];
@@ -91,12 +98,14 @@ __global__ void pcryCalculate_ACC(
                     dz 		= posZ_j[yourSharedId] - posZ_i;
 
                     // Norm squared with smoothing factor
-                    r_squared  	= dx*dx + dy*dy + dz*dz + 1.0e-6;
+                    r_squared  	= dx*dx + dy*dy + dz*dz;
+                    r_soft      = sqrt(r_squared + (epsilon * epsilon))
                     r		    = sqrt(r_squared);
-
+                    
                     // DUST-DUST YUKAWA FORCE
-                    acc	 	=  (-COULOMB*charge_j[yourSharedId]*charge_i)/r_squared;
-                    acc 	*= (1.0f + r/DEBYE)*exp(-r/DEBYE) / mass_i;
+                    acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f + r/DEBYE)*exp(-r/DEBYE)/r_soft;
+                    acc /= (mass_i);
+
 
                     accX_i		+= acc * (dx/r);
                     accY_i 		+= acc * (dy/r);
@@ -113,6 +122,7 @@ __global__ void pcryCalculate_ACC(
                             nn_id   = yourId;  // This needs to be the real Id not what is in shared memory.
                         }
                     }
+                    
 
 
                     // DUST-ION YUKAWA FORCE
@@ -137,23 +147,30 @@ __global__ void pcryCalculate_ACC(
 				
 		// Getting dust to bottom plate force.
 		// e field is bottomePlatesCharge*(posMeY - sheathHeight). This is the linear force that starts at the sheath. We got this from Dr. Mathews.
+		/*
 		if(posZ_i < SHEATH_HEIGHT){
-			accZ_i += -charge_i * E_0*(posZ_i - SHEATH_HEIGHT)/mass_i;
-		}
+			
+			accZ_i += -charge_i * (E_0/0.0022) * (posZ_i - SHEATH_HEIGHT);
+		}*/
+        zi = posZ_i;
+        zi2 = zi * zi;
 
+		Ez = -8083 + 553373*zi + 2.0e8*zi2 -3.017e10*zi*zi2 + 1.471e12*zi2*zi2 - 2.306e13*zi2*zi2*zi;
+		accZ_i += charge_i * Ez / mass_i;
+		
 		// Calculating radial confinement force
 		r  	= sqrt(posX_i*posX_i + posY_i*posY_i);
-        if(r != 0){
-            acc = -charge_i*CELL_CHARGE*pow(r/CELL_RADIUS,12)/mass_i;
-            accX_i += acc * (posX_i/r);
-            accY_i += acc * (posY_i/r);
-        }
+		if(r != 0){
+		    acc = charge_i*CELL_CHARGE*pow(r/CELL_RADIUS,12)/mass_i;
+		    accX_i += acc * (posX_i/r);
+		    accY_i += acc * (posY_i/r);
+		}
 
 		
 		// Calculate acceleration due to gravity
-		//accZ_i += -GRAVITY;
+		accZ_i += -GRAVITY;
 		
-		// Calculating drag force 
+		// Calculating drag force
 		accX_i += -BETA * dustVelX[i];
 		accY_i += -BETA * dustVelY[i];
 		accZ_i += -BETA * dustVelZ[i];
@@ -206,6 +223,7 @@ __global__ void pcryCalculate_POS(
 	
 	// Note: DustForce.w hold the mass of the dust grain.
 	if(i < NUM_PARTICLES){
+        /*
 		// Updating my ionwake percent charge and length below the dust if its distance to the its nearest dust grain is within debyeLengthMultiplier*debyeLengths.
 		// Also adding the percent charge that the upstream ionWake lost to the down stream ionWake.
 		// Need to do this before you update the positions or you will get a miss read on dy.
@@ -231,7 +249,7 @@ __global__ void pcryCalculate_POS(
 			// If for some reason the ionwake didn't get turned back on it is reset here.
 			wakeCharge[i] = WAKE_CHARGE_PERCENT;
 			wakeLength[i] = WAKE_LENGTH;
-		}	
+		}	*/
 		
 		if(TIME == 0.0f){
 			dustVelX[i] += 0.5f*DT*dustAccX[i];
@@ -246,7 +264,8 @@ __global__ void pcryCalculate_POS(
 		dustPosX[i] += dustVelX[i]*DT;
 		dustPosY[i] += dustVelY[i]*DT;
 		dustPosZ[i] += dustVelZ[i]*DT;
-		
+
+        /*
 		// Randomly perturbating the dust electron count. 
 		// This gets a little involved. I first get a standard normal distributed number (Mean 0 StDev 1).
 		// Then I set its StDev to the number of electrons that fluctuate per unit dust diameter for this dust grain size.
@@ -274,7 +293,7 @@ __global__ void pcryCalculate_POS(
     		dustCharge[i] += randomNumber*ELECTRON_CHARGE;
 	   
 	    	// If the amount of charge ends up being negative which probablistically it could, set it to zero
-	    	if(dustCharge[i] < 0.0) dustCharge[i] = 0.0;
+	    	if(dustCharge[i] < 0.0) dustCharge[i] = 0.0;*/
 	}				
 }
 
