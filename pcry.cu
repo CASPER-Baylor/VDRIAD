@@ -22,7 +22,9 @@ __global__ void pcryCalculate_ACC(
 				  float SHEATH_HEIGHT, 
 				  float WAKE_CHARGE_PERCENT,
 				  float GRAVITY, 
-				  float BETA,
+				  float GAS_TEMP,
+                  float GAS_PRESSURE,
+                  float TIME_STEP,
 				  int 	NUM_PARTICLES){
 			  
 	// VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
@@ -39,6 +41,7 @@ __global__ void pcryCalculate_ACC(
     float   az1;            // z component of the acceleration of the ith particle
     float   mass1;          // mass of the ith particle
     float   charge1;        // charge of the ith particle
+    float   radius1;        // radius of the ith particle
 
     // JTH PARTICLE         !! This part should actually not be here, what wee need to replace is the variables below
     float   x2;             // Stores the x position of the jth particle
@@ -61,14 +64,18 @@ __global__ void pcryCalculate_ACC(
 	float 	posX_i, posY_i, posZ_i;
 	float 	charge_i, mass_i;
 
+    float   SIGMA;
+    float   BETA;
+
+
 	// VARIABLES TO BE ALLOCATED IN SHARED MEMORY
 	__shared__ float posX_j[BLOCK], posY_j[BLOCK], posZ_j[BLOCK];
 	__shared__ float charge_j[BLOCK], wakeCharge_j[BLOCK], wakeLength_j[BLOCK];
 
     //------------------------------------------------------------------------------------------------------------------
 	int i = threadIdx.x + blockDim.x*blockIdx.x;
-	if(i < NUM_PARTICLES){              // Making sure we are not out working past the number of particles.
-        epsilon  = 2 * dustRadius[i];
+	if(i < NUM_PARTICLES){              // Making sure we are not out working past the number of particles
+        epsilon  = 1e-6;
 
 		// Save positions
         x1  = dustPosX[i];
@@ -85,6 +92,7 @@ __global__ void pcryCalculate_ACC(
 
         mass1   = dustMass[i];
         charge1 = dustCharge[i];
+        radius1 = dustRadius[i];
 		
 		// Initialize forces
 		accX_i 	 = 0.0f;
@@ -125,16 +133,15 @@ __global__ void pcryCalculate_ACC(
                     // Norm squared with smoothing factor
                     r_squared  	= dx*dx + dy*dy + dz*dz;
                     r_soft      = sqrt(r_squared + (epsilon * epsilon));
-                    r		    = sqrt(r_squared);
+                    r		= sqrt(r_squared);
                     
                     // DUST-DUST YUKAWA FORCE
-                    acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f + r/DEBYE)*exp(-r/DEBYE)/r_soft;
+                    acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f+r/DEBYE)*exp(-r/DEBYE)/(r_soft*r_soft);
                     acc /= (mass_i);
 
-
-                    accX_i		+= acc * (dx/r);
-                    accY_i 		+= acc * (dy/r);
-                    accZ_i 		+= acc * (dz/r);
+                    accX_i	+= acc * (dx/r_soft);
+                    accY_i 	+= acc * (dy/r_soft);
+                    accZ_i 	+= acc * (dz/r_soft);
 
                     // Finding the nearest neighbor below the current dust grain and within
                     // the specified distance (6 * DEBYE)
@@ -153,15 +160,16 @@ __global__ void pcryCalculate_ACC(
                     // DUST-ION YUKAWA FORCE
                     dz = (posZ_j[yourSharedId] - wakeLength_j[yourSharedId]) - posZ_i;
 
-                    r_squared  	= dx*dx + dy*dy + dz*dz + 1.0e-6;
+                    r_squared  	= dx*dx + dy*dy + dz*dz;
+                    r_soft	= sqrt(r_squared + (epsilon * epsilon));
                     r  	   	= sqrt(r_squared);
 
-                    acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i)/r_squared;
+                    acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i)/(r_soft*r_soft);
                     acc		*=(1.0f + r/DEBYE)*exp(-r/DEBYE)/mass_i;
 
-                    accX_i 		+= acc * (dx/r);
-                    accY_i 		+= acc * (dy/r);
-                    accZ_i 		+= acc * (dz/r);
+                    accX_i 	+= acc * (dx/r_soft);
+                    accY_i 	+= acc * (dy/r_soft);
+                    accZ_i 	+= acc * (dz/r_soft);
 				}
 			}
 		}
@@ -186,9 +194,14 @@ __global__ void pcryCalculate_ACC(
 		accZ_i += -GRAVITY;
 		
 		// DRAG FORCE
+        BETA = 1.44* 4.0 /3.0 * (radius1*radius1) * GAS_PRESSURE / mass1 * sqrt(8.0 * PI * ION_MASS/BOLTZMANN/GAS_TEMP);
+
 		accX_i += -BETA * dustVelX[i];
 		accY_i += -BETA * dustVelY[i];
 		accZ_i += -BETA * dustVelZ[i];
+
+        // BROWNIAN MOTION
+        SIGMA = sqrt(2.0* BETA * BOLTZMANN * GAS_TEMP/mass1/TIME_STEP);
 
         // LOAD FORCES--------------------------------------------------------------------------------------------------
         // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
