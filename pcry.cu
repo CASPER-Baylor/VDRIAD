@@ -25,6 +25,7 @@ __global__ void pcryCalculate_ACC(
 				  float GAS_TEMP,
                   float GAS_PRESSURE,
                   float TIME_STEP,
+                  double TIME,
 				  int 	NUM_PARTICLES){
 			  
 	// VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
@@ -66,6 +67,9 @@ __global__ void pcryCalculate_ACC(
 
     float   SIGMA;
     float   BETA;
+
+    // STATE FOR GENERATING RANDOM NUMBER
+    curandState_t state;
 
 
 	// VARIABLES TO BE ALLOCATED IN SHARED MEMORY
@@ -201,7 +205,12 @@ __global__ void pcryCalculate_ACC(
 		accZ_i += -BETA * dustVelZ[i];
 
         // BROWNIAN MOTION
+        curand_init((time_t)(TIME+i),0,0,&state);
         SIGMA = sqrt(2.0* BETA * BOLTZMANN * GAS_TEMP/mass1/TIME_STEP);
+
+        accX_i += SIGMA * curand_normal(&state);
+        accY_i += SIGMA * curand_normal(&state);
+        accZ_i += SIGMA * curand_normal(&state);
 
         // LOAD FORCES--------------------------------------------------------------------------------------------------
         // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
