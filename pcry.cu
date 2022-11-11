@@ -14,7 +14,8 @@ __global__ void pcryCalculate_ACC(
 			  	  int* wakeID, 
 			  	  float DUST_RADIUS_MEAN,
 				  float COULOMB, 
-				  float DEBYE, 
+				  float ION_DEBYE,
+				  float ELECTRON_DEBYE,  
 				  float CUTOFF_M, 
 				  float CELL_RADIUS, 
 				  float CELL_CHARGE, 
@@ -104,7 +105,7 @@ __global__ void pcryCalculate_ACC(
 		accZ_i 	 = 0.0f;
 		
 		// Other variables
-		r_min 	 = CUTOFF_M * DEBYE;
+		r_min 	 = CUTOFF_M * ION_DEBYE;
 		z_min 	 = 100000.0;
 		nn_id 	 = -1;
 
@@ -140,7 +141,7 @@ __global__ void pcryCalculate_ACC(
                     r		= sqrt(r_squared);
                     
                     // DUST-DUST YUKAWA FORCE
-                    acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f+r/DEBYE)*exp(-r/DEBYE)/(r_soft*r_soft);
+                    acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f+r/ION_DEBYE)*exp(-r/ION_DEBYE)/(r_soft*r_soft);
                     acc /= (mass_i);
 
                     accX_i	+= acc * (dx/r_soft);
@@ -148,7 +149,7 @@ __global__ void pcryCalculate_ACC(
                     accZ_i 	+= acc * (dz/r_soft);
 
                     // Finding the nearest neighbor below the current dust grain and within
-                    // the specified distance (6 * DEBYE)
+                    // the specified distance (6 * ION_DEBYE)
                     // We will use this to set the ionWake of the two dusts in question.
                     // This will be done in the move function to remove any race conditions.
                     if(dz < 0.0f){ // If dz is negative you are below me.
@@ -168,12 +169,12 @@ __global__ void pcryCalculate_ACC(
                     r_soft	= sqrt(r_squared + (epsilon * epsilon));
                     r  	   	= sqrt(r_squared);
 
-                    acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i)/(r_soft*r_soft);
-                    acc		*=(1.0f + r/DEBYE)*exp(-r/DEBYE)/mass_i;
+                    acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i);
+                    acc		*=(1.0f + r/ELECTRON_DEBYE)*exp(-r/ELECTRON_DEBYE)/mass_i;
 
-                    accX_i 	+= acc * (dx/r_soft);
-                    accY_i 	+= acc * (dy/r_soft);
-                    accZ_i 	+= acc * (dz/r_soft);
+                    //accX_i 	+= acc * (dx/(r_soft*r_soft*r_soft));
+                    //accY_i 	+= acc * (dy/(r_soft*r_soft*r_soft));
+                    //accZ_i 	+= acc * (dz/(r_soft*r_soft*r_soft));
 				}
 			}
 		}
@@ -208,9 +209,9 @@ __global__ void pcryCalculate_ACC(
         curand_init((time_t)(TIME+i),0,0,&state);
         SIGMA = sqrt(2.0* BETA * BOLTZMANN * GAS_TEMP/mass1/TIME_STEP);
 
-        accX_i += SIGMA * curand_normal(&state);
-        accY_i += SIGMA * curand_normal(&state);
-        accZ_i += SIGMA * curand_normal(&state);
+        //accX_i += SIGMA * curand_normal(&state);
+        //accY_i += SIGMA * curand_normal(&state);
+        //accZ_i += SIGMA * curand_normal(&state);
 
         // LOAD FORCES--------------------------------------------------------------------------------------------------
         // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
@@ -251,7 +252,8 @@ __global__ void pcryCalculate_POS(
 				  float CUTOFF_M,  
 				  float WAKE_CHARGE_PERCENT, 
 				  float WAKE_LENGTH,
-				  float DEBYE,
+				  float ION_DEBYE,
+				  float ELECTRON_DEBYE,
 				  float DT,
 				  float TIME,
 				  int 	NUM_PARTICLES){
