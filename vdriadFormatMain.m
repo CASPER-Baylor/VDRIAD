@@ -1,4 +1,4 @@
-% File:             vdriadFormatMain
+% File:             vdriadFormatMain.m
 % Author:           Jorge Augusto Martinez-Ortiz
 % Date Created:     02.06.2023
 
@@ -20,8 +20,8 @@ function vdriadFormatMain(app)
     app.PressurePaSpinner.Limits = [0.1 200];
     
     % DEBYE LENGTH
-    app.IonDebyeGauge.Limits = [0 200];
-    app.ElectronDebyeGauge.Limits = [0 200];
+    app.GaugeDebyeIon.Limits = [0 200];
+    app.GaugeDebyeElectron.Limits = [0 200];
     
     % LAMP
     app.PlayLamp.Color = 'red';
@@ -31,5 +31,6 @@ function vdriadFormatMain(app)
     app.NewseedCheckBox.Value = false;
     
     % TABLE
-    %app.UITable.ColumnName = {'ax','ay','az'};
+    strCols = {'N','x','y','z','vx','vy','vz','ax','ay','az'};
+    app.UITable.ColumnName = strCols;
 end
