@@ -5,7 +5,7 @@
 function vdriadLoadParameters(app)
 %vdriadLoadParameters Loads the simulation parameters
 %   Detailed explanation goes here
-        app.params.BLOCK                   = 32;
+        app.params.BLOCK_SIZE              = 32;
 
         % GAS
         app.params.GAS_TEMPERATURE         = 288.15;
