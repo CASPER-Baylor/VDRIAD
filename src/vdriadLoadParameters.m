@@ -5,13 +5,15 @@
 function vdriadLoadParameters(app)
 %vdriadLoadParameters Loads the simulation parameters
 %   Detailed explanation goes here
-        app.params.BLOCK_SIZE              = 32;
+        fileParam = app.fileParam;
+
+        app.params.BLOCK_SIZE              = loadParam('BLOCK_SIZE',fileParam);
 
         % GAS
-        app.params.GAS_TEMPERATURE         = 288.15;
-        app.params.GAS_PRESSURE            = 10;
-        app.params.ION_MASS                = 6.68e-26;
-        app.params.IONIZATION_FRAC         = 1/1e6;
+        app.params.GAS_TEMPERATURE         = loadParam('GAS_TEMPERATURE',fileParam);
+        app.params.GAS_PRESSURE            = loadParam('GAS_PRESSURE',fileParam);
+        app.params.ION_MASS                = loadParam('ION_MASS',fileParam);
+        app.params.IONIZATION_FRAC         = loadParam('IONIZATION_FRAC',fileParam);
         app.params.ION_DEBYE               
         app.params.GAS_DENSITY             
         app.params.ION_DENSITY             
@@ -47,3 +49,34 @@ function vdriadLoadParameters(app)
         app.params.CELL_HEIGHT             = 1.2e-2;
         app.params.E_0                     = 3350;
 end
+
+function param = loadParam(name,filename)
+            match = false;
+
+            % Open the file
+            fileID = fopen(filename,'r');
+
+            % Read line and process if not comment line
+            while (~feof(fileID)) && (~match)
+                str = fgetl(fileID);
+
+                % Process if not comment line
+                if (~isempty(str)) && (str(1) ~= '!')
+                    C = textscan(str,'%s = %f32');  
+
+                    % Check for name match
+                    if strcmp(C{1},name)
+                        param = C{2};
+                        match = true;
+                    end
+                end
+            end
+
+            % Notify if value was not found in parameter file
+            if ~match
+                error('Error: parameter %s not found in %s',name,filename);
+            end
+
+            % Close the file
+            fclose(fileID);
+        end
