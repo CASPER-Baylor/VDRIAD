@@ -14,16 +14,16 @@ function vdriadLoadParameters(app)
         app.params.GAS_PRESSURE            = loadParam('GAS_PRESSURE',fileParam);
         app.params.ION_MASS                = loadParam('ION_MASS',fileParam);
         app.params.IONIZATION_FRAC         = loadParam('IONIZATION_FRAC',fileParam);
-        app.params.ION_DEBYE               
-        app.params.GAS_DENSITY             
-        app.params.ION_DENSITY             
+        app.params.ION_DEBYE               = nan;
+        app.params.GAS_DENSITY             = nan;
+        app.params.ION_DENSITY             = nan;
         
 
         % ELECTRON
         app.params.ELECTRON_TEMPERATURE    = 28815;
         app.params.ELECTRON_CHARGE         = -1.60e-19;
-        app.params.ELECTRON_DENSITY
-        app.params.ELECTRON_DEBYE       
+        app.params.ELECTRON_DENSITY        = nan;
+        app.params.ELECTRON_DEBYE          = nan;
         
         app.params.SHEATH_HEIGHT           = 10.6e-3;
         app.params.WAKE_CHARGE_PERCENT     = 0.3;
@@ -62,7 +62,7 @@ function param = loadParam(name,filename)
 
                 % Process if not comment line
                 if (~isempty(str)) && (str(1) ~= '!')
-                    C = textscan(str,'%s = %f32');  
+                    C = textscan(str,'%s %f32');  
 
                     % Check for name match
                     if strcmp(C{1},name)
