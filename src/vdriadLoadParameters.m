@@ -45,6 +45,7 @@ function vdriadLoadParameters(app)
         app.params.PERMITTIVITY            = loadParam('PERMITTIVITY',fileParam);
 
         app.params.CELL_CHARGE             = loadParam('CELL_CHARGE',fileParam);
+        app.params.CELL_POWER              = loadParam('CELL_POWER',fileParam);
         app.params.CELL_RADIUS             = loadParam('CELL_RADIUS',fileParam);
         app.params.CELL_HEIGHT             = loadParam('CELL_HEIGHT',fileParam);
         app.params.E_0                     = loadParam('E_0',fileParam);
@@ -66,7 +67,7 @@ function param = loadParam(name,filename)
 
                     % Check for name match
                     if strcmp(C{1},name)
-                        param = C{2};
+                        param = double(C{2});
                         match = true;
                     end
                 end
