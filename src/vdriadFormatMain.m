@@ -17,7 +17,7 @@ function vdriadFormatMain(app)
     % PRESSURE SPINNER
     app.PressureSpinner.Value = app.params.GAS_PRESSURE;
     app.PressureSpinner.Step = 0.1;
-    app.PressureSpinner.Limits = [0.1 200];
+    app.PressureSpinner.Limits = [0.66 6];
 
     % POWER SPINNER
     app.PowerSpinner.Value = app.params.CELL_POWER;
