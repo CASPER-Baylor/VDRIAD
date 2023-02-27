@@ -27,7 +27,6 @@ function vdriadFormatMain(app)
     app.PlayLamp.Color = 'red';
     
     % CHECKBOXES
-    app.MovieCheckBox.Value = true;
     app.NewseedCheckBox.Value = false;
     
     % TABLE
