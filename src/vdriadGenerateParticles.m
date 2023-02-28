@@ -97,26 +97,4 @@ function [dust,params] = vdriadGenerateParticles(dust,params)
 
     % Copy all the dust data to the device
     dust = vdriadMemCpy(dust,'HtoD','all');
-
-%     % LOAD TO DEVICE
-%     dust.x              = gpuArray(xx);
-%     dust.y              = gpuArray(yy);
-%     dust.z              = gpuArray(zz);
-%     dust.vx             = gpuArray(vx);
-%     dust.vy             = gpuArray(vy);
-%     dust.vz             = gpuArray(vz);
-%     dust.ax             = gpuArray(ax);
-%     dust.ay             = gpuArray(ay);
-%     dust.az             = gpuArray(az);
-%     dust.diameter       = gpuArray(diameter);
-%     dust.radius         = gpuArray(radius);
-%     dust.charge         = gpuArray(charge);
-%     dust.mass           = gpuArray(mass);
-%     
-%     wake.charge         = gpuArray(wake_charge_p);
-%     wake.length         = gpuArray(wake_length);
-%     wake.nn_r           = gpuArray(wake_nn_r);
-%     wake.nn_z           = gpuArray(wake_nn_z);
-%     wake.nn_id          = gpuArray(wake_nn_id);
-
 end
