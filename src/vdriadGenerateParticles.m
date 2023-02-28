@@ -1,4 +1,4 @@
-function vdriadGenerateParticles(dust,wake,params)
+function [dust,wake,params] = vdriadGenerateParticles(dust,wake,params)
 %GenerateParticles Creates all the particles with their respective
 %properties
 %   Detailed explanation goes here
@@ -61,47 +61,62 @@ function vdriadGenerateParticles(dust,wake,params)
     wake_nn_id              = -1 * ones(params.NUM_PARTICLES,1,'int32');
 
     % SAVE TO HOST
-    dust.host.x         = xx;
-    dust.host.y         = yy;
-    dust.host.z         = zz;
-    dust.host.vx        = vx;
-    dust.host.vy        = vy;
-    dust.host.vz        = vz;
-    dust.host.ax        = ax;
-    dust.host.ay        = ay;
-    dust.host.az        = az;
+    dust.h_x         = xx;
+    dust.h_y         = yy;
+    dust.h_z         = zz;
+    dust.h_vx        = vx;
+    dust.h_vy        = vy;
+    dust.h_vz        = vz;
+    dust.h_ax        = ax;
+    dust.h_ay        = ay;
+    dust.h_az        = az;
 
-    % SAVE INITIAL CONDITIONS
-    dust.x0             = xx;
-    dust.y0             = yy;
-    dust.z0             = zz;
-    dust.vx0            = vx;
-    dust.vy0            = vy;
-    dust.vz0            = vz;
-    dust.ax0            = ax;
-    dust.ay0            = ay;
-    dust.az0            = az;
+    dust.h_diameter       = diameter;
+    dust.h_radius         = radius;
+    dust.h_charge         = charge;
+    dust.h_mass           = mass;
 
-    % LOAD TO DEVICE
-    dust.x              = gpuArray(xx);
-    dust.y              = gpuArray(yy);
-    dust.z              = gpuArray(zz);
-    dust.vx             = gpuArray(vx);
-    dust.vy             = gpuArray(vy);
-    dust.vz             = gpuArray(vz);
-    dust.ax             = gpuArray(ax);
-    dust.ay             = gpuArray(ay);
-    dust.az             = gpuArray(az);
-    dust.diameter       = gpuArray(diameter);
-    dust.radius         = gpuArray(radius);
-    dust.charge         = gpuArray(charge);
-    dust.mass           = gpuArray(mass);
-    
-    wake.charge         = gpuArray(wake_charge_p);
-    wake.length         = gpuArray(wake_length);
-    wake.nn_r           = gpuArray(wake_nn_r);
-    wake.nn_z           = gpuArray(wake_nn_z);
-    wake.nn_id          = gpuArray(wake_nn_id);
+    wake.h_charge         = wake_charge_p;
+    wake.h_length         = wake_length;
+    wake.h_nn_r           = wake_nn_r;
+    wake.h_nn_z           = wake_nn_z;
+    wake.h_nn_id          = wake_nn_id;
 
     params.DUST_RADIUS_MEAN = params.DUST_DIAMETER_MEAN / 2;
+
+    % SAVE INITIAL CONDITIONS
+    dust.x0          = xx;
+    dust.y0          = yy;
+    dust.z0          = zz;
+    dust.vx0         = vx;
+    dust.vy0         = vy;
+    dust.vz0         = vz;
+    dust.ax0         = ax;
+    dust.ay0         = ay;
+    dust.az0         = az;
+
+    % Copy all the dust data to the device
+    dust = vdriadMemCpy(dust,'HtoD','all');
+
+%     % LOAD TO DEVICE
+%     dust.x              = gpuArray(xx);
+%     dust.y              = gpuArray(yy);
+%     dust.z              = gpuArray(zz);
+%     dust.vx             = gpuArray(vx);
+%     dust.vy             = gpuArray(vy);
+%     dust.vz             = gpuArray(vz);
+%     dust.ax             = gpuArray(ax);
+%     dust.ay             = gpuArray(ay);
+%     dust.az             = gpuArray(az);
+%     dust.diameter       = gpuArray(diameter);
+%     dust.radius         = gpuArray(radius);
+%     dust.charge         = gpuArray(charge);
+%     dust.mass           = gpuArray(mass);
+%     
+%     wake.charge         = gpuArray(wake_charge_p);
+%     wake.length         = gpuArray(wake_length);
+%     wake.nn_r           = gpuArray(wake_nn_r);
+%     wake.nn_z           = gpuArray(wake_nn_z);
+%     wake.nn_id          = gpuArray(wake_nn_id);
+
 end
