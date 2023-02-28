@@ -3,8 +3,11 @@
 % Date Created:     02.06.2023
 
 function vdriadLoadParameters(app)
-%vdriadLoadParameters Loads the simulation parameters
+%LoadParameters Loads the simulation parameters from the specified
+%parameter file. 
 %   Detailed explanation goes here
+
+        % PARAMETERS TO BE LOADED FROM THE PARAMETER FILE
         fileParam = app.fileParam;
 
         app.params.BLOCK_SIZE              = loadParam('BLOCK_SIZE',fileParam);
@@ -49,6 +52,13 @@ function vdriadLoadParameters(app)
         app.params.CELL_RADIUS             = loadParam('CELL_RADIUS',fileParam);
         app.params.CELL_HEIGHT             = loadParam('CELL_HEIGHT',fileParam);
         app.params.E_0                     = loadParam('E_0',fileParam);
+
+        % TIMING
+        app.params.TIME_STEP               = 0.0005;
+
+        % PARAMETERS THAT MUST BE CALCULATED ONCE
+        % Draw rate and print rate
+        app.drawPeriod                     = floor(1/(app.drawRate * app.params.TIME_STEP));
 end
 
 function param = loadParam(name,filename)

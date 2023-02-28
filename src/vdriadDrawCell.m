@@ -5,9 +5,9 @@
 function vdriadDrawCell(axes,params)
 %DRAWCELL takes care of drawing the GEC RF cell to the screen 
     % Set axis limits
-    axes.XLim = [-1 1] * params.CELL_RADIUS;
-    axes.YLim = [-1 1] * params.CELL_RADIUS;
-    axes.ZLim = [0 1] * params.CELL_HEIGHT;
+    axes.XLim = [-1 1] * (1.2) * params.CELL_RADIUS;
+    axes.YLim = [-1 1] * (1.2) * params.CELL_RADIUS;
+    axes.ZLim = [0 1] * (1.2) * params.CELL_HEIGHT;
     
     % Draw cell electrodes and sheath
     theta = linspace(0,2*pi,30);

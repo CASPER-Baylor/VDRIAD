@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = vdriadDrawDust(app)
+function vdriadDrawDust(app)
 %UNTITLED5 Summary of this function goes here
 %   The function that will draw the particles to the screen
     % Ultimately we want to combine the two functions into one and

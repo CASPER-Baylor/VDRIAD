@@ -1,4 +1,4 @@
-function [dust,wake,params] = vdriadGenerateParticles(dust,wake,params)
+function [dust,params] = vdriadGenerateParticles(dust,params)
 %GenerateParticles Creates all the particles with their respective
 %properties
 %   Detailed explanation goes here
@@ -76,11 +76,11 @@ function [dust,wake,params] = vdriadGenerateParticles(dust,wake,params)
     dust.h_charge         = charge;
     dust.h_mass           = mass;
 
-    wake.h_charge         = wake_charge_p;
-    wake.h_length         = wake_length;
-    wake.h_nn_r           = wake_nn_r;
-    wake.h_nn_z           = wake_nn_z;
-    wake.h_nn_id          = wake_nn_id;
+    dust.h_wake_charge         = wake_charge_p;
+    dust.h_wake_length         = wake_length;
+    dust.h_wake_nn_r           = wake_nn_r;
+    dust.h_wake_nn_z           = wake_nn_z;
+    dust.h_wake_nn_id          = wake_nn_id;
 
     params.DUST_RADIUS_MEAN = params.DUST_DIAMETER_MEAN / 2;
 
