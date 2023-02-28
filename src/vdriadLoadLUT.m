@@ -1,5 +1,7 @@
 function vdriadLoadLUT(app)
-%LOADLUT Loads the LUT data for the respective Lookup tables
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+%LoadLut Loads the lookup table data previously generated to be used as a
+%lookup table in the simulation
+    load('../data/LUTData.mat','LUTData');
+
+    app.LUTS.LUTDensity = vdriadLUT2D(LUTData);
 end
