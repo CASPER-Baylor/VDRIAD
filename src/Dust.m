@@ -100,7 +100,6 @@ classdef Dust < Handle
             obj.Acceleration.Initial.y      = obj.Acceleration.host.y;
             obj.Acceleration.Initial.z      = obj.Acceleration.host.z;
     end
-
         function outputArg = method1(obj,inputArg)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
