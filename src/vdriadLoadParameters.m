@@ -18,6 +18,7 @@ function vdriadLoadParameters(app)
         app.params.ION_MASS                = loadParam('ION_MASS',fileParam);
         app.params.IONIZATION_FRAC         = loadParam('IONIZATION_FRAC',fileParam);
         app.params.ION_DEBYE               = nan;
+        app.params.ELECTRON_DEBYE          = nan;
         app.params.GAS_DENSITY             = nan;
         app.params.ION_DENSITY             = nan;
         
@@ -54,7 +55,7 @@ function vdriadLoadParameters(app)
         app.params.E_0                     = loadParam('E_0',fileParam);
 
         % TIMING
-        app.params.TIME_STEP               = 0.0005;
+        app.params.TIME_STEP               = 0.0003;
 
         % PARAMETERS THAT MUST BE CALCULATED ONCE
         % Draw rate and print rate

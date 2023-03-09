@@ -8,8 +8,10 @@ function vdriadUpdateParams(app)
     params.GAS_DENSITY = params.GAS_PRESSURE / (params.BOLTZMANN * params.GAS_TEMPERATURE);
     
     % CALCULATE ION AND ELECTRON DENSITIES
-    params.ELECTRON_DENSITY = params.GAS_DENSITY * params.IONIZATION_FRAC;
-    params.ION_DENSITY = params.GAS_DENSITY * params.IONIZATION_FRAC;
+    %params.ELECTRON_DENSITY = params.GAS_DENSITY * params.IONIZATION_FRAC;
+    params.ELECTRON_DENSITY = app.LUTS.LUTDensity.LookUp(params.GAS_PRESSURE,params.CELL_POWER) *1e6;
+    %params.ION_DENSITY = params.GAS_DENSITY * params.IONIZATION_FRAC;
+    params.ION_DENSITY = params.ELECTRON_DENSITY;
 
     % CALCULATE ION AND ELECTRON DEBYE LENGTHS
     params.ION_DEBYE = sqrt(params.PERMITTIVITY * params.BOLTZMANN * params.GAS_TEMPERATURE/...
@@ -18,10 +20,10 @@ function vdriadUpdateParams(app)
     params.ELECTRON_DEBYE = sqrt(params.PERMITTIVITY * params.BOLTZMANN * params.ELECTRON_TEMPERATURE/...
                             (params.ELECTRON_DENSITY * params.ELECTRON_CHARGE * params.ELECTRON_CHARGE));
 
-    % DISPLAY CHANGES
-    app.GaugeDebyeElectron.Value = params.ION_DEBYE * 1e6;
-    app.GaugeDebyeIon.Value = params.ELECTRON_DEBYE * 1e6;
-
+    % UPDATE TO DISPLAY
+    app.UITable2.Data.Value = [params.ION_DEBYE;...
+                               params.ELECTRON_DEBYE;...
+                               params.ELECTRON_DENSITY]; 
     % SAVE CHANGES
     app.params = params;
 end

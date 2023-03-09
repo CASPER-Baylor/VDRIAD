@@ -22,11 +22,7 @@ function vdriadFormatMain(app)
     % POWER SPINNER
     app.PowerSpinner.Value = app.params.CELL_POWER;
     app.PowerSpinner.Step = 0.1;
-    app.PowerSpinner.Limits = [0.1 25];
-    
-    % DEBYE LENGTH
-    app.GaugeDebyeIon.Limits = [0 200];
-    app.GaugeDebyeElectron.Limits = [0 200];
+    app.PowerSpinner.Limits = [1 20];
     
     % LAMP
     app.PlayLamp.Color = 'red';
@@ -34,7 +30,24 @@ function vdriadFormatMain(app)
     % CHECKBOXES
     app.NewseedCheckBox.Value = false;
     
-    % TABLE
+    % TABLES
+    % Dynamics table
     strCols = {'N','x','y','z','vx','vy','vz','ax','ay','az'};
     app.UITable.ColumnName = strCols;
+
+    % Parameters table
+    strCols = {'Parameters','Value'};
+    strParams = {'$\lambda_i$',...
+                 '$\lambda_e$',...
+                 '$n_e,n_i$'};
+    valParams = zeros(3,1);
+
+    T = table(strParams',valParams,'VariableNames',strCols);
+    app.UITable2.Data = T;
+    s = uistyle('Interpreter','latex','HorizontalAlignment','center');
+    addStyle(app.UITable2,s,'column','Parameters');
+
+    %s = uistyle('HorizontalAlignment','center');
+    %addStyle(app.UITable2,s,'column','Value');
+    
 end
