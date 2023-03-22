@@ -4,117 +4,95 @@
 % Description:      Table Lookup to find the electric potential as a
 %                   function of the height above the lower electrode
 
-T = readtable('../data/Couedel_PhysRevE_105_015210_fig08.csv');
-zShifted = T.z;
-TOffset = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.csv');
+%% READ DATA
+clear
+
+% Read the tables containing the data
+TPotential = readtable('../data/Couedel_PhysRevE_105_015210_fig08.xlsx');
+TPotential = TPotential(:,["Pressure","Power","z","V"]);
+
+TSheath = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.csv');
+TSheath = TSheath(:,["Pressure","Power","z0"]);
 
 
-pressureVals = unique(T.Pressure);
-powerVals    = unique(T.Power);
-zVals        = unique(T.z);
+%% PROCESS DATA TO OBTAIN QUADRATIC FITS
+% Array to store the coefficient of the parabola
+beta = zeros(numel(TSheath.z0),1);
+
+% Identify the values at which powers and pressures at which measurements
+% were taken
+pressureVals = unique(TPotential.Pressure);
+powerVals = unique(TPotential.Power);
+
+color = 'bm';
+ylimPotential = [-150 0];
 
 figure
 for i = 1:numel(pressureVals)
+    % Current pressure
     pressure = pressureVals(i);
 
-    % Get indices to the corresponding values
-    idx = T.Pressure == pressure;
-    jdx = TOffset.Pressure == pressure;
+    for j = 1:numel(powerVals)
+        % Current power
+        power = powerVals(j);
+        
+        % Index to Data
+        idx = (TPotential.Pressure == pressure) & (TPotential.Power == power);
+        z = TPotential.z(idx);
+        V = TPotential.V(idx);
 
-    % Get the data
-    V = reshape(T(idx,:).V,3,2);
-    sheathHeight = TOffset.z0(jdx);
+        idy = (TSheath.Pressure == pressure) & (TSheath.Power == power);
+        z0 = TSheath.z0(idy);
 
-    % Query points
-    n = 100;
-    Vq = zeros(100,2);
-    zq = linspace(0,10,100);
+        % Fit parabola and determine query points
+        xq = linspace(0,z0,100);
+        par.b0 = fitParabola(z,V,0);
+        beta(idy) = par.b0;
+        par.x0 = 0;
+        
+        % ===== RECREATE ORIGINAL PLOTS
+        subplot(3,3,i)
+        hold on
+        plotFit(z,V,xq,color(j),par);
+        hold off
+        xline(z0,':r')
 
-    % Interpolate for each series
-    p = polyfit(zVals,V(:,1),2);
-    Vq(:,1) = polyval(p,zq);
-    p = polyfit(zVals,V(:,2),2);
-    Vq(:,2) = polyval(p,zq);
+        title(sprintf("$p_{Ar}=%0.1f$ Pa",pressure),'Interpreter','latex')
+        if i == 1; ylabel('$V_p(V)$','Interpreter','latex'); end
+        ylim(ylimPotential);
 
-    % Plot sample vals
-    subplot(3,3,i)
-    ax_data = scatter(zVals,V,150,'.');
-    title(sprintf("$p_{Ar}=%.1f$ Pa ",pressure),'Interpreter','latex',...
-                                                'FontSize',15)
-    axis square
-    xlim([0 10])
-    ylim([-150 30])
+        % Shift the orgin to be located at the bottom of the cell
+        z = z - z0;
+        z = -z;
 
-    if i == 1
-            ylabel('$V_p(V)$','Interpreter','latex')
-    end
-
-    % Plot quadratic fit
-    hold on
-    ax_fit = plot(zq,Vq,'--');
-    ax_fit(1).Color = ax_data(1).CData;
-    ax_fit(2).Color = ax_data(2).CData;
-    hold off
-
-    % Plot sheath heights
-    xline(sheathHeight(1),'-','Color',ax_data(1).CData);
-    xline(sheathHeight(2),'-','Color',ax_data(2).CData);
-
-    % Legend
-    legend('5W','25W','5W fit','25W fit')
-
-    % Fix the data by shifting coordinate system to be centered 
-    % At the bottom of the plate and not the sheath
-    for k = 1:numel(powerVals)
-        power = powerVals(k);
-        kdx = T.Power == power;
-
-        % Index pointing to the corresponding pressure and the
-        % corresponding power
-        index = idx & kdx;
-
-        % Shift z coordinate axis
-        zShifted(index) = zShifted(index) - sheathHeight(k);
-        zShifted(index) = -zShifted(index);
-
-        % Perform quadratic fit
-        zq = linspace(0,sheathHeight(k),n);
-        p = polyfit(zShifted(index),V(:,k),2);
-        Vq(:,k) = polyval(p,zq);
-
-        % Plot Shifted measurements
+        % Fit parabola
+        xq = linspace(0,z0,100);
+        par.b0 = fitParabola(z,V,z0);
+        par.x0 = z0;
+        
+        % ===== CREATE SHIFTED PLOTS AND NEW PARABOLAS
         subplot(3,3,i+3)
         hold on
-        ax_data = scatter(zShifted(index),V(:,k),150,'.');
-        ax_fit = plot(zq,Vq(:,k),'--');
-
-        ax_fit.Color = ax_data.CData;
+        plotFit(z,V,xq,color(j),par);
         hold off
-    end
-    if i == 1
-        ylabel('$V_p(V)$','Interpreter','latex')
-    end
-    yline(0,'-r')
+        xline(z0,':r')
 
-    for k = 1:numel(powerVals)
-        % Plot Electric field
+        if i == 1; ylabel('$V_p(V)$ (shifted)','Interpreter','latex'); end
+        ylim(ylimPotential);
+
+        % ===== CREATE PLOTS OF THE ELECTRIC FIELDS
         subplot(3,3,i+6)
-        dV = Vq(2,k)-Vq(1,k);
-        E = -diff(Vq(:,k),1,1) / dV;
-
         hold on
-        plot(zq(2:end),E)
+        plotElectricField(xq,color(j),par);
         hold off
 
-        xlabel('z(mm)','Interpreter','latex')
-    end
-    if i == 1
-        ylabel('$E(V/mm)$','Interpreter','latex')
+        if i == 1; ylabel('$E(V/cm)$','Interpreter','latex'); end
+        xlabel('$z(cm)$','Interpreter','latex')
+        ylim([-50 0])
     end
 end
 
-
-
+%% ORGANIZE DATA TO OBTAIN 2D INTERPOLATION
 %[X,Y] = meshgrid(pressure_vals,power_vals);
 %V = reshape(T.Density,numel(power_vals),numel(pressure_vals));
 
@@ -129,6 +107,37 @@ end
 % xlabel('Pressure [Pa]');
 % ylabel('Power');
 % zlabel('$n_e [cm^{-3}$]','Interpreter','latex');
+
+function plotFit(x,y,xq,color,par)
+    % Evaluate parabola at query points
+    yq = parabola(xq,par);
+
+    hold on
+    scatter(x,y,100,['.' color]);
+    scatter(xq(end),yq(end),'xr');
+    plot(xq,yq,['-' color]);
+    hold off
+end
+
+function plotElectricField(xq,color,par)
+    % Evaluate parabola at query points
+    yq = parabola(xq,par);
+
+    dx = xq(2)-xq(1);
+    E = -diff(yq,1) / dx;
+
+    plot(xq(2:end),E,['-' color]);
+end
+
+function yq = parabola(x,par)
+    yq = par.b0 * (x-par.x0).^2;
+end
+
+% Fits a parabola centered at x0
+function b0 = fitParabola(x,y,x0)
+    xEff = x-x0;
+    b0 = sum(y .* xEff.^2)/sum(xEff.^4);
+end
 
 
 
