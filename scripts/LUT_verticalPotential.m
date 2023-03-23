@@ -93,17 +93,51 @@ for i = 1:numel(pressureVals)
 end
 
 %% ORGANIZE DATA TO OBTAIN 2D INTERPOLATION
-%[X,Y] = meshgrid(pressure_vals,power_vals);
-%V = reshape(T.Density,numel(power_vals),numel(pressure_vals));
+
+% X: Pressure
+% Y: Power
+[X,Y] = meshgrid(pressureVals,powerVals);
+
+% V: This is the height of the sheath, but also the point x0 around which
+%    the parabola is centerd
+V = reshape(TSheath.z0,numel(powerVals),numel(pressureVals));
+
+% W: This is the parameter that defines the parabola equivalent to 
+%    b0 in the expression b0(x-x0)^2
+W = reshape(beta,numel(powerVals),numel(pressureVals));
+
+% Define query points for interpolation
+xq = linspace(pressureVals(1),pressureVals(end),20);
+yq = linspace(powerVals(1),powerVals(end),20);
+[Xq,Yq] = meshgrid(xq,yq);
+
+figure
+% Plot sheath height
+subplot(1,2,1)
+surf(Xq,Yq,interp2(X,Y,V,Xq,Yq));
+
+title('Sheath height as function of Pressure and Power')
+xlabel('Pressure [Pa]')
+ylabel('Power [W]')
+zlabel("$h_s[cm]$",'Interpreter','latex','FontSize',20)
+
+% Plot the slope of the electric field
+subplot(1,2,2)
+surf(Xq,Yq,interp2(X,Y,(-2 *W),Xq,Yq));
+
+title('Electric field steepness as a function of Pressure and Power')
+xlabel('Pressure [Pa]')
+ylabel('Power [W]')
+zlabel("$\frac{dE}{dz}$ [$\frac{V}{cm^2}$]",'Interpreter','latex','FontSize',20)
+
+
 
 %LUTLabel = 'LUT01';
 
 % Run this just to visualize an example of how things would work
-% xq = linspace(pressure_vals(1),pressure_vals(end),20);
-% yq = linspace(power_vals(1),power_vals(end),20);
-% [Xq,Yq] = meshgrid(xq,yq);
+
 % figure
-% surf(Xq,Yq,interp2(X,Y,V,Xq,Yq));
+
 % xlabel('Pressure [Pa]');
 % ylabel('Power');
 % zlabel('$n_e [cm^{-3}$]','Interpreter','latex');
