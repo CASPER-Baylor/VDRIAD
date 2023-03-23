@@ -6,7 +6,8 @@
 %                   electron density as a function of the power and
 %                   pressure. The values are taken from nosenkos paper.
 
-T = readtable('../data/Couedel_PhysRevE_105_015210_fig02.csv');
+T = readtable('../data/Couedel_PhysRevE_105_015210_fig02.xlsx');
+T = T(:,["Pressure","Power","Density"]);
 
 pressure_vals = unique(T.Pressure);
 power_vals = unique(T.Power);

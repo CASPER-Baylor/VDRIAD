@@ -8,7 +8,7 @@
 TPotential = readtable('../data/Couedel_PhysRevE_105_015210_fig08.xlsx');
 TPotential = TPotential(:,["Pressure","Power","z","V"]);
 
-TSheath = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.csv');
+TSheath = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.xlsx');
 TSheath = TSheath(:,["Pressure","Power","z0"]);
 
 %% PROCESS DATA TO OBTAIN QUADRATIC FITS
