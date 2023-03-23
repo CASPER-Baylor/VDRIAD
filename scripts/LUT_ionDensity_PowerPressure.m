@@ -14,7 +14,13 @@ power_vals = unique(T.Power);
 [X,Y] = meshgrid(pressure_vals,power_vals);
 V = reshape(T.Density,numel(power_vals),numel(pressure_vals));
 
-LUTLabel = 'LUT01';
+LUT.Name = "LUT01";
+LUT.Label = ["Pressure";
+             "Power";
+             "Electron density"];
+LUT.X = X;
+LUT.Y = Y;
+LUT.Z = V;
 
 % Run this just to visualize an example of how things would work
 % xq = linspace(pressure_vals(1),pressure_vals(end),20);

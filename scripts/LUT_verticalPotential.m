@@ -4,16 +4,12 @@
 % Description:      Table Lookup to find the electric potential as a
 %                   function of the height above the lower electrode
 
-%% READ DATA
-clear
-
 % Read the tables containing the data
 TPotential = readtable('../data/Couedel_PhysRevE_105_015210_fig08.xlsx');
 TPotential = TPotential(:,["Pressure","Power","z","V"]);
 
 TSheath = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.csv');
 TSheath = TSheath(:,["Pressure","Power","z0"]);
-
 
 %% PROCESS DATA TO OBTAIN QUADRATIC FITS
 % Array to store the coefficient of the parabola
@@ -123,24 +119,23 @@ zlabel("$h_s[cm]$",'Interpreter','latex','FontSize',20)
 
 % Plot the slope of the electric field
 subplot(1,2,2)
-surf(Xq,Yq,interp2(X,Y,(-2 *W),Xq,Yq));
+surf(Xq,Yq,interp2(X,Y,(-2*W),Xq,Yq));
 
 title('Electric field steepness as a function of Pressure and Power')
 xlabel('Pressure [Pa]')
 ylabel('Power [W]')
 zlabel("$\frac{dE}{dz}$ [$\frac{V}{cm^2}$]",'Interpreter','latex','FontSize',20)
 
-
-
-%LUTLabel = 'LUT01';
-
-% Run this just to visualize an example of how things would work
-
-% figure
-
-% xlabel('Pressure [Pa]');
-% ylabel('Power');
-% zlabel('$n_e [cm^{-3}$]','Interpreter','latex');
+% Store data in struct
+LUT.Name = "LUT02";
+LUT.Label = ["Pressure";
+             "Power";
+             "Sheath Height";
+             "Beta"];
+LUT.X = X;
+LUT.Y = Y;
+LUT.V = V;
+LUT.W = W;
 
 function plotFit(x,y,xq,color,par)
     % Evaluate parabola at query points
@@ -172,6 +167,7 @@ function b0 = fitParabola(x,y,x0)
     xEff = x-x0;
     b0 = sum(y .* xEff.^2)/sum(xEff.^4);
 end
+
 
 
 

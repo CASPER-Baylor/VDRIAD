@@ -24,24 +24,28 @@ function vdriadGenerateLUT()
 
     % Run the matlab scripts
     idx = find(idx);
-    LUTData = struct('Label',[],'X',[],'Y',[],'V',[]);
+    LUTArray = cell(numel(idx),1);
 
     for i = 1:length(idx)
         jdx = idx(i);
 
-        % Run Script to generate the corresponding LUT
-        run([path '/' listing(jdx).name])
-
-        % Store the corresponding variables
-        LUTData(i).Label = LUTLabel;
-        LUTData(i).X = X;
-        LUTData(i).Y = Y;
-        LUTData(i).V = V;
+        % Run Script to generate the corresponding LUT and store
+        name = [path '/' listing(jdx).name];
+        LUTArray{i} = callFunc(name);
 
         fprintf('\t%s generated\n',listing(jdx).name);
     end
 
     fprintf('Saving LUTs Data...\n');
-    save('../data/LUTData.mat','LUTData');
+    save('../data/LUTData.mat','LUTArray');
     fprintf('Done.\n')
+end
+
+function LUT = callFunc(name)
+    % This is just a function that takes care of executing the script. The
+    % reason for using a function is that it allows us to keep the
+    % workspaces separated so that it doesn't mess up the variables of the
+    % current function
+    
+    run(name);
 end
