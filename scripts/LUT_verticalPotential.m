@@ -137,6 +137,9 @@ LUT.Y = Y;
 LUT.V = V;
 LUT.W = W;
 
+% Close figures
+close all
+
 function plotFit(x,y,xq,color,par)
     % Evaluate parabola at query points
     yq = parabola(xq,par);
