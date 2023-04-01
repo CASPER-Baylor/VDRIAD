@@ -48,4 +48,5 @@ function LUT = callFunc(name)
     % current function
     
     run(name);
+    close all
 end
