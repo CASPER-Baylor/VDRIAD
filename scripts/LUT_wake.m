@@ -32,7 +32,8 @@ p = polyfit(x,length,1);
 lengthQ1 = polyval(p,xq);
 
 % Debye
-
+f = fittype('a*x^(-1/2)','independent','x');
+[debyeQ1,gofDebye] = fit(x,debye,f);
 
 % Plot as a function of pressure
 myData = @(x,y) plot(x,y,'.');
@@ -54,13 +55,13 @@ myFit(xq,lengthQ1)
 hold off
 ylabel('l/\lambda_{De}')
 
-% subplot(3,1,3)
-% hold on 
-% myData(x,debye)
-% myFit(xq,debyeQ2)
-% hold off
-% ylabel('\lambda_{De}/\mum')
-% xlabel('Pressure [Pa]')
+subplot(3,1,3)
+hold on 
+myData(x,debye)
+plot(debyeQ1)
+hold off
+ylabel('\lambda_{De}/\mum')
+xlabel('Pressure [Pa]')
 
 function TProc = processData(T)
     n = size(T,1);
