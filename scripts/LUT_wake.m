@@ -19,49 +19,77 @@ xq = linspace(min(x),max(x));
 charge = TProc.Qw./TProc.Qd;
 length = TProc.L;
 debye = TProc.lambdaDe;
+chargeDust = TProc.Qd;
 
 % Wake charge
-p = polyfit(x,charge,1);
-chargeQ1 = polyval(p,xq);
+modCharge1 = 'poly1';
+[fitCharge1,gofCharge1] = fit(x,charge,modCharge1);
 
-p = polyfit(x,charge,2);
-chargeQ2 = polyval(p,xq);
+modCharge2 = 'poly2';
+[fitCharge2,gofCharge2] = fit(x,charge,modCharge2);
 
 % Length 
-p = polyfit(x,length,1);
-lengthQ1 = polyval(p,xq);
+modLength = 'poly1';
+[fitLength,gofLength] = fit(x,length,modLength);
 
 % Debye
-f = fittype('a*x^(-1/2)','independent','x');
-[debyeQ1,gofDebye] = fit(x,debye,f);
+modDebye = fittype('a*x^(-1/2)','independent','x');
+[fitDebye,gofDebye] = fit(x,debye,modDebye);
 
-% Plot as a function of pressure
+% ChargeDust
+modChargeDust = 'poly1';
+[fitChargeDust,gofChargeDust] = fit(x,chargeDust,modChargeDust);
+
+
+% Handle functions for plotting
 myData = @(x,y) plot(x,y,'.');
-myFit = @(x,y) plot(x,y,'--');
+myFit = @(fit) plot(fit,'--');
 
 figure
-subplot(3,1,1)
+subplot(4,1,1)
 hold on
 myData(x,charge)
-myFit(xq,chargeQ1)
-myFit(xq,chargeQ2)
+myFit(fitCharge1);
+myFit(fitCharge2);
 hold off
-ylabel('q_w/Q_d')
 
-subplot(3,1,2)
+ylabel('q_w/Q_d')
+strLegend = ['';'R^2='+string([gofCharge1.rsquare;gofCharge2.rsquare])];
+legend(strLegend)
+
+subplot(4,1,2)
 hold on 
 myData(x,length)
-myFit(xq,lengthQ1)
+myFit(fitLength)
 hold off
-ylabel('l/\lambda_{De}')
 
-subplot(3,1,3)
+ylabel('l/\lambda_{De}')
+strLegend = ['';'R^2='+string(gofLength.rsquare)];
+legend(strLegend)
+
+subplot(4,1,3)
 hold on 
 myData(x,debye)
-plot(debyeQ1)
+myFit(fitDebye)
 hold off
+
 ylabel('\lambda_{De}/\mum')
+strLegend = ['';'R^2='+string(gofDebye.rsquare)];
+legend(strLegend)
+
+subplot(4,1,4)
+hold on
+myData(x,chargeDust)
+myFit(fitChargeDust)
+hold off
+
+ylabel('10^4 e^{–}')
 xlabel('Pressure [Pa]')
+strLegend = ['';'R^2='+string(gofChargeDust.rsquare)];
+legend(strLegend)
+
+
+
 
 function TProc = processData(T)
     n = size(T,1);
