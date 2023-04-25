@@ -4,48 +4,48 @@ classdef Param
 		COULOMB         = 8.98e12;
 		BOLTZMANN       = 1.38e-23;
 		PERMITTIVITY    = 8.85e-12;
-	end
+        ELECTRON_CHARGE = -1.60e-19;
+    end
 
-	% Simulation Parameters
-	properties (Access=public)
-		BLOCK_SIZE
-
-		% Gas parameters
-		GAS_TEMPERATURE
-		GAS_PRESSURE
-		ION_MASS
+    % Dynamic Parameters
+    properties (GetAccess=public,SetAccess=private)
+        BLOCK_SIZE
+        ION_MASS
 		IONIZATION_FRAC
 		ION_DEBYE
 		GAS_DENSITY
 		ION_DENSITY
 		ELECTRON_TEMPERATURE
-		ELECTRON_CHARGE
+		
 		ELECTRON_DENSITY
 		ELECTRON_DEBYE
 
-		SHEATH_HEIGHT
+        SHEATH_HEIGHT
 		WAKE_CHARGE_PERCENT
 		WAKE_LENGTH
 		CUTOFF_MULTIPLIER
 
-		NUM_PARTICLES
+        NUM_PARTICLES
 		DUST_DENSITY
 		DUST_DIAMETER_MEAN
-		DUST_RADIUS_MEAN
-		DUST_DIAMETER_STD
+        DUST_DIAMETER_STD
 		DUST_CHARGE_DENSITY_MEAN
 		DUST_CHARGE_DENSITY_STD
 
-		GRAVITY
-
-		CELL_CHARGE
-		CELL_POWER
-		CELL_RADIUS
+        CELL_CHARGE
+        CELL_RADIUS
 		CELL_HEIGHT
 		E_FIELD
+    end
 
+	% Simulation Parameters
+	properties (Access=public)
+		GAS_TEMPERATURE
+		GAS_PRESSURE
+		DUST_RADIUS_MEAN
+		GRAVITY
+		CELL_POWER
 		TIME_STEP
-
 		DRAW_PERIOD
 	end
 
@@ -53,7 +53,7 @@ classdef Param
 	properties (Access=private)
         FileName
     end
-    
+
 	% Public Methods
 	methods (Access=public)
 		% Class constructor
@@ -76,7 +76,6 @@ classdef Param
             
             % ELECTRON
             obj.ELECTRON_TEMPERATURE    = load('ELECTRON_TEMPERATURE');
-            obj.ELECTRON_CHARGE         = load('ELECTRON_CHARGE');
             obj.ELECTRON_DENSITY        = nan;
             obj.ELECTRON_DEBYE          = nan;
             
