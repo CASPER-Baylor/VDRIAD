@@ -41,12 +41,12 @@ function vdriadGenerateLUT()
     fprintf('Done.\n')
 end
 
-function LUT = callFunc(name)
+function LUT = callFunc(scriptName)
     % This is just a function that takes care of executing the script. The
     % reason for using a function is that it allows us to keep the
     % workspaces separated so that it doesn't mess up the variables of the
     % current function
     
-    run(name);
+    run(scriptName);
     close all
 end

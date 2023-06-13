@@ -132,10 +132,10 @@ LUT.Label = ["Pressure";
              "Power";
              "Sheath Height";
              "Beta"];
-LUT.X = X;
-LUT.Y = Y;
-LUT.V = V;
-LUT.W = W;
+LUT.Pressure = X;
+LUT.Power = Y;
+LUT.SheathHeight = V;
+LUT.Beta = W;
 
 function plotFit(x,y,xq,color,par)
     % Evaluate parabola at query points

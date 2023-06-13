@@ -19,9 +19,9 @@ LUT.Name = "LUT01";
 LUT.Label = ["Pressure";
              "Power";
              "Electron density"];
-LUT.X = X;
-LUT.Y = Y;
-LUT.Z = V;
+LUT.Pressure = X;
+LUT.Power = Y;
+LUT.ElectronDensity = V;
 
 % Run this just to visualize an example of how things would work
 % xq = linspace(pressure_vals(1),pressure_vals(end),20);

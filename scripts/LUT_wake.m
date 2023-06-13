@@ -88,22 +88,28 @@ xlabel('Pressure [Pa]')
 strLegend = ['';'R^2='+string(gofChargeDust.rsquare)];
 legend(strLegend)
 
-% Store charge ratio
-LUT.U(1) = fitCharge2.p1;
-LUT.U(2) = fitCharge2.p2;
-LUT.U(3) = fitCharge2.p3;
-
-% Store  net dust charge
-LUT.V(1) = fitChargeDust.p1;
-LUT.V(2) = fitChargeDust.p2;
-
-% Store length ratio
-LUT.W(1) = fitLength.p1;
-LUT.W(2) = fitLength.p2;
-
 % Store Labels
 LUT.Name = "LUT03";
-LUT.Label = ["Ion Wake Charge Ratio ";"Dust Charge";"Ion Wake Length Ratio"];
+LUT.Label = ["Pressure";
+             "Ion Wake Charge Ratio ";
+             "Dust Charge";
+             "Ion Wake Length Ratio"];
+
+% Store pressure values
+LUT.Pressure = TProc.Pressure;
+
+% Store charge ratio
+LUT.ChargeRatio(1) = fitCharge2.p1;
+LUT.ChargeRatio(2) = fitCharge2.p2;
+LUT.ChargeRatio(3) = fitCharge2.p3;
+
+% Store  net dust charge
+LUT.DustCharge(1) = fitChargeDust.p1;
+LUT.DustCharge(2) = fitChargeDust.p2;
+
+% Store length ratio
+LUT.LengthRatio(1) = fitLength.p1;
+LUT.LengthRatio(2) = fitLength.p2;
 
 function TProc = processData(T)
     n = size(T,1);
