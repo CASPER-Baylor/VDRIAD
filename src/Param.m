@@ -32,8 +32,6 @@ classdef Param < handle
 		DUST_DIAMETER_MEAN
         DUST_RADIUS_MEAN
         DUST_DIAMETER_STD
-		DUST_CHARGE_DENSITY_MEAN
-		DUST_CHARGE_DENSITY_STD
         DUST_CHARGE
 
         CELL_CHARGE
@@ -206,10 +204,7 @@ classdef Param < handle
             obj.NUM_PARTICLES           = load('NUM_PARTICLES');
             obj.DUST_DENSITY            = load('DUST_DENSITY');
             obj.DUST_DIAMETER_MEAN      = load('DUST_DIAMETER_MEAN');
-
             obj.DUST_DIAMETER_STD       = load('DUST_DIAMETER_STD');
-            obj.DUST_CHARGE_DENSITY_MEAN= load('DUST_CHARGE_DENSITY_MEAN');
-            obj.DUST_CHARGE_DENSITY_STD = load('DUST_CHARGE_DENSITY_STD');
             
             % CONSTANTS
             obj.GRAVITY                 = load('GRAVITY');
@@ -253,8 +248,14 @@ classdef Param < handle
             % Load data and function for Wake Charge Ratio, Dust Charge and
             % Wake Length Ratio
             LUT = findLUT("LUT03");
+
+            % Ion wake to dust charge ratio (normalized value)
             obj.funcWakeChargeRatio = @(pressure) polyval(LUT.ChargeRatio,pressure);
-            obj.funcDustCharge = @(pressure) polyval(LUT.DustCharge,pressure);
+
+            % Dust charge in Coulombs
+            obj.funcDustCharge = @(pressure) polyval(LUT.DustCharge,pressure) * obj.ELECTRON_CHARGE;
+            
+            % Ion wake to Electron Debye Length ratio (normalized value)
             obj.funcWakeLengthRatio = @(pressure) polyval(LUT.LengthRatio,pressure);
         end  
     end
