@@ -1,43 +1,59 @@
-classdef Dust < handle
+classdef vdriadDust < handle
     %DUST class to store the information of dust particles in the
     %simulation
     %   Detailed explanation goes here
+
+    % PROPERTIES===========================================================
     properties (SetAccess=public)
         Mass 
         Diameter
         Radius
+        Charge
+
+        % Spatial
         Position 
         Velocity 
         Acceleration
-        Charge
-        WakeChargePercent
+        
+        % Wake Characteristics
+        WakeCharge
         WakeLength
         WakeNNR
         WakeNNZ
         WakeNNId
     end
+
+    % PUBLIC METHODS=======================================================
     methods (Access=public)
-        function obj = Dust(params)
-        %Dust is the constructor for the Dust class. 
-        obj.GenerateParticles(params);
-        %obj.MemCpy('HtoD','all');
+        % Class constructor
+        function obj = vdriadDust(params)
+        % Call the function that will generate the particles
+            obj.generateParticles(params);
         end
-        function GenerateParticles(obj,params)
+
+        % Name:
+        % Description:
+        function generateParticles(obj,params)
         %GenerateParticles creates the particles based on the properties
         %specified by the params class/strcut
         %   Takes the struct 'params' as an argument
         %   and generates the dust particles accordingly
 
             % Allocate memory
-            xVec = zeros(params.NUM_PARTICLES,1,'single');
-            yVec = zeros(params.NUM_PARTICLES,1,'single');
-            zVec = zeros(params.NUM_PARTICLES,1,'single');
+            N = params.NUM_PARTICLES;
+            xVec = zeros(N,1,'single');
+            yVec = zeros(N,1,'single');
+            zVec = zeros(N,1,'single');
         
             x = 0;
             y = 0;
             z = 0;
         
-            for i = 1:params.NUM_PARTICLES
+            % Generate particles randomly in the specified region. Only
+            % keep those particles that are far enough from other particles
+            d_tolerance_squared = 10000e-12;
+
+            for i = 1:N
                 notValid = true;
 
                 % Generate random position
@@ -47,7 +63,7 @@ classdef Dust < handle
                     z   = (rand('single') * 0.5 + 1 - 0.5) * params.CELL_HEIGHT;
                     
                     % Check for particles that are too close
-                    isClose = any(((xVec(1:i-1)-x).^2 + (yVec(1:i-1)-y).^2 + (zVec(1:i-1)-z).^2) < (10000e-12));
+                    isClose = any(((xVec(1:i-1)-x).^2 + (yVec(1:i-1)-y).^2 + (zVec(1:i-1)-z).^2) < d_tolerance_squared);
         
                     % Check for particles outside the cell
                     isOutside = (x^2 + y^2) >= (params.CELL_RADIUS^2);
@@ -67,39 +83,47 @@ classdef Dust < handle
             obj.Position.host.z = zVec;
 
             % GENERATE PARTICLE VELOCITIES
-            obj.Velocity.host.x = zeros(params.NUM_PARTICLES,1,'single');
-            obj.Velocity.host.y = zeros(params.NUM_PARTICLES,1,'single');
-            obj.Velocity.host.z = zeros(params.NUM_PARTICLES,1,'single');
+            obj.Velocity.host.x = zeros(N,1,'single');
+            obj.Velocity.host.y = zeros(N,1,'single');
+            obj.Velocity.host.z = zeros(N,1,'single');
             
             % GENERATE PARTICLE ACCELERATIONS
-            obj.Acceleration.host.x = zeros(params.NUM_PARTICLES,1,'single');
-            obj.Acceleration.host.y = zeros(params.NUM_PARTICLES,1,'single');
-            obj.Acceleration.host.z = zeros(params.NUM_PARTICLES,1,'single');
+            obj.Acceleration.host.x = zeros(N,1,'single');
+            obj.Acceleration.host.y = zeros(N,1,'single');
+            obj.Acceleration.host.z = zeros(N,1,'single');
             
             % GENERATE SIZE, MASS AND CHARGE
-            obj.Diameter.host = (randn(params.NUM_PARTICLES,1,'single') * params.DUST_DIAMETER_STD + params.DUST_DIAMETER_MEAN);
+            obj.Diameter.host = (randn(N,1,'single') * params.DUST_DIAMETER_STD + params.DUST_DIAMETER_MEAN);
             obj.Radius.host   = obj.Diameter.host / 2;
             obj.Mass.host     = params.DUST_DENSITY * (4/3 * pi * obj.Radius.host.^3);
-            obj.Charge.host   = round(params.DUST_CHARGE_DENSITY_MEAN * obj.Diameter.host) * params.ELECTRON_CHARGE;
+            obj.Charge.host   = params.DUST_CHARGE * ones(N,1,'single');
         
             % GENERATE ION WAKE
-            obj.WakeChargePercent.host          = params.WAKE_CHARGE_PERCENT * ones(params.NUM_PARTICLES,1,'single');
-            obj.WakeLength.host                 = params.WAKE_LENGTH * ones(params.NUM_PARTICLES,1,'single');
-            obj.WakeNNR.host                    = 1000 * params.ION_DEBYE * ones(params.NUM_PARTICLES,1,'single');
-            obj.WakeNNZ.host                    = 1000 * params.ION_DEBYE * ones(params.NUM_PARTICLES,1,'single');
-            obj.WakeNNId.host                   = -1 * ones(params.NUM_PARTICLES,1,'int32');
-        
+            obj.WakeCharge.host                 = params.WAKE_CHARGE_RATIO * obj.Charge.host;
+            obj.WakeLength.host                 = params.WAKE_LENGTH * ones(N,1,'single');
+            obj.WakeNNR.host                    = 1000 * params.ION_DEBYE * ones(N,1,'single');
+            obj.WakeNNZ.host                    = 1000 * params.ION_DEBYE * ones(N,1,'single');
+            obj.WakeNNId.host                   = -1 * ones(N,1,'int32');
+
             % SAVE INITIAL CONDITIONS
-            obj.Position.initial.x          = xVec;
-            obj.Position.initial.y          = yVec;
-            obj.Position.initial.z          = zVec;
+            obj.saveInitialConditions;
+        end
+
+        % Name:             saveInitialConditions
+        % Description:      Copies the values currently stored in the host
+        % array and stores them as initial conditions
+        function saveInitialConditions(obj)
+            obj.Position.initial.x          = obj.Position.host.x;
+            obj.Position.initial.y          = obj.Position.host.y;
+            obj.Position.initial.z          = obj.Position.host.z;
             obj.Velocity.initial.x          = obj.Velocity.host.x;
             obj.Velocity.initial.y          = obj.Velocity.host.y;
             obj.Velocity.initial.z          = obj.Velocity.host.z;
             obj.Acceleration.initial.x      = obj.Acceleration.host.x;
             obj.Acceleration.initial.y      = obj.Acceleration.host.y;
             obj.Acceleration.initial.z      = obj.Acceleration.host.z;
-    end
+        end
+
         function MemCpy(obj,direction,varargin)
             %MemCpy Moves data between the GPU and the host
             copyAll = false;
@@ -141,6 +165,7 @@ classdef Dust < handle
                     obj.WakeNNZ.device          = gpuArray(obj.WakeNNZ.host);
                     obj.WakeNNId.device         = gpuArray(obj.WakeNNId.host);
                 end
+
             elseif strcmp(direction,'DtoH')
                 % COPY POSITIONS
                 obj.Position.host.x = gather(obj.Position.device.x);

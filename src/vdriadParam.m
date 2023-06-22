@@ -1,4 +1,4 @@
-classdef Param < handle
+classdef vdriadParam < handle
 	% Universal Constants
 	properties (Access=public,Constant)
 		COULOMB         = 8.98e12;
@@ -77,7 +77,7 @@ classdef Param < handle
 	% Public Methods
 	methods (Access=public)
 		% Class constructor
-		function obj = Param(fileName)
+		function obj = vdriadParam(fileName)
             % Initialize parameter file name
             obj.FileName = fileName;
 
