@@ -35,7 +35,7 @@ classdef vdriadDust < handle
         % Description:
         function generateParticles(obj,params)
         %GenerateParticles creates the particles based on the properties
-        %specified by the params class/strcut
+        %specified by the Param class
         %   Takes the struct 'params' as an argument
         %   and generates the dust particles accordingly
 
@@ -111,7 +111,7 @@ classdef vdriadDust < handle
 
         % Name:             saveInitialConditions
         % Description:      Copies the values currently stored in the Host
-        % array and stores them as initial conditions
+        %                   array and stores them as initial conditions
         function saveInitialConditions(obj)
             obj.Position.Initial.x          = obj.Position.Host.x;
             obj.Position.Initial.y          = obj.Position.Host.y;
@@ -124,7 +124,25 @@ classdef vdriadDust < handle
             obj.Acceleration.Initial.z      = obj.Acceleration.Host.z;
         end
 
-        function MemCpy(obj,direction,varargin)
+        % Name:             loadInitialConditions
+        % Description:
+        function loadInitialConditions(obj)
+            obj.Position.Host.x             = obj.Position.Initial.x;
+            obj.Position.Host.y             = obj.Position.Initial.y;
+            obj.Position.Host.z             = obj.Position.Initial.z;
+            obj.Velocity.Host.x             = obj.Velocity.Initial.x;
+            obj.Velocity.Host.y             = obj.Velocity.Initial.y;
+            obj.Velocity.Host.z             = obj.Velocity.Initial.z;
+            obj.Acceleration.Host.x         = obj.Acceleration.Initial.x;
+            obj.Acceleration.Host.y         = obj.Acceleration.Initial.y;
+            obj.Acceleration.Host.z         = obj.Acceleration.Initial.z;      
+        end
+
+        % Name:             memoryCopy        
+        % Description:      Copies the dust array data back and forth
+        %                   between the host (CPU) and memory on the device
+        %                   (GPU)
+        function memoryCopy(obj,direction,varargin)
             %MemCpy Moves data between the GPU and the Host
             copyAll = false;
             if nargin > 3
@@ -138,50 +156,50 @@ classdef vdriadDust < handle
         
             if strcmp(direction,'HtoD')
                 % COPY POSITIONS
-                obj.Position.device.x = gpuArray(obj.Position.Host.x);
-                obj.Position.device.y = gpuArray(obj.Position.Host.y);
-                obj.Postioin.device.z = gpuArray(obj.Position.Host.z);
+                obj.Position.Device.x = gpuArray(obj.Position.Host.x);
+                obj.Position.Device.y = gpuArray(obj.Position.Host.y);
+                obj.Postioin.Device.z = gpuArray(obj.Position.Host.z);
         
                 if copyAll
                     % COPY VELOCITIES
-                    obj.Velocity.device.x = gpuArray(obj.Velocity.Host.x);
-                    obj.Velocity.device.y = gpuArray(obj.Velocity.Host.y);
-                    obj.Velocity.device.z = gpuArray(obj.Velocity.Host.z);
+                    obj.Velocity.Device.x = gpuArray(obj.Velocity.Host.x);
+                    obj.Velocity.Device.y = gpuArray(obj.Velocity.Host.y);
+                    obj.Velocity.Device.z = gpuArray(obj.Velocity.Host.z);
             
                     % COPY ACCELERATIONS
-                    obj.Acceleration.device.x = gpuArray(obj.Acceleration.Host.x);
-                    obj.Acceleration.device.y = gpuArray(obj.Acceleration.Host.y);
-                    obj.Acceleration.device.z = gpuArray(obj.Acceleration.Host.z);
+                    obj.Acceleration.Device.x = gpuArray(obj.Acceleration.Host.x);
+                    obj.Acceleration.Device.y = gpuArray(obj.Acceleration.Host.y);
+                    obj.Acceleration.Device.z = gpuArray(obj.Acceleration.Host.z);
         
                     % COPY DUST PARAMETERS
-                    obj.Diameter.device = gpuArray(obj.Diameter.Host);
-                    obj.Radius.device   = gpuArray(obj.Radius.Host);
-                    obj.Charge.device   = gpuArray(obj.Charge.Host);
-                    obj.Mass.device     = gpuArray(obj.Mass.Host);
+                    obj.Diameter.Device = gpuArray(obj.Diameter.Host);
+                    obj.Radius.Device   = gpuArray(obj.Radius.Host);
+                    obj.Charge.Device   = gpuArray(obj.Charge.Host);
+                    obj.Mass.Device     = gpuArray(obj.Mass.Host);
         
-                    obj.WakeChargePercent.device  = gpuArray(obj.WakeChargePercent.Host);
-                    obj.WakeLength.device         = gpuArray(obj.WakeLength.Host);
-                    obj.WakeNNR.device          = gpuArray(obj.WakeNNR.Host);
-                    obj.WakeNNZ.device          = gpuArray(obj.WakeNNZ.Host);
-                    obj.WakeNNId.device         = gpuArray(obj.WakeNNId.Host);
+                    obj.WakeChargePercent.Device  = gpuArray(obj.WakeChargePercent.Host);
+                    obj.WakeLength.Device         = gpuArray(obj.WakeLength.Host);
+                    obj.WakeNNR.Device          = gpuArray(obj.WakeNNR.Host);
+                    obj.WakeNNZ.Device          = gpuArray(obj.WakeNNZ.Host);
+                    obj.WakeNNId.Device         = gpuArray(obj.WakeNNId.Host);
                 end
 
             elseif strcmp(direction,'DtoH')
                 % COPY POSITIONS
-                obj.Position.Host.x = gather(obj.Position.device.x);
-                obj.Position.Host.y = gather(obj.Position.device.y);
-                obj.Position.Host.z = gather(obj.Position.device.z);
+                obj.Position.Host.x = gather(obj.Position.Device.x);
+                obj.Position.Host.y = gather(obj.Position.Device.y);
+                obj.Position.Host.z = gather(obj.Position.Device.z);
                 
                 if copyAll
                     % COPY VELOCITIES
-                    obj.Velocity.Host.x = gather(obj.Velocity.device.x);
-                    obj.Velocity.Host.y = gather(obj.Velocity.device.y);
-                    obj.Velocity.Host.z = gather(obj.Velocity.device.z);
+                    obj.Velocity.Host.x = gather(obj.Velocity.Device.x);
+                    obj.Velocity.Host.y = gather(obj.Velocity.Device.y);
+                    obj.Velocity.Host.z = gather(obj.Velocity.Device.z);
             
                     % COPY ACCELERATIONS
-                    obj.Acceleration.Host.x = gather(obj.Acceleration.device.x);
-                    obj.Acceleration.Host.y = gather(obj.Acceleration.device.y);
-                    obj.Acceleration.Host.z = gather(obj.Acceleration.device,z);
+                    obj.Acceleration.Host.x = gather(obj.Acceleration.Device.x);
+                    obj.Acceleration.Host.y = gather(obj.Acceleration.Device.y);
+                    obj.Acceleration.Host.z = gather(obj.Acceleration.Device,z);
                 end
             end
         end
