@@ -103,7 +103,7 @@ LUT.ChargeRatio(1) = fitCharge2.p1;
 LUT.ChargeRatio(2) = fitCharge2.p2;
 LUT.ChargeRatio(3) = fitCharge2.p3;
 
-% Store  net dust charge
+% Store net dust charge
 LUT.DustCharge(1) = fitChargeDust.p1;
 LUT.DustCharge(2) = fitChargeDust.p2;
 
