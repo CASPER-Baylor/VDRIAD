@@ -6,8 +6,8 @@ function vdriadSetKernels(app)
 %vdriadSetKernels Initializes the CUDA kernels that calculate the particles
 %accelerations and positions
 %   Detailed explanation goes here
-    ThreadBlockSize = app.params.BLOCK_SIZE;
-    GridSize        = floor((app.params.NUM_PARTICLES-1)/ThreadBlockSize) + 1;
+    ThreadBlockSize = app.Parameters.BLOCK_SIZE;
+    GridSize        = floor((app.Parameters.NUM_PARTICLES-1)/ThreadBlockSize) + 1;
     
     ! nvcc -ptx pcry.cu
     acc = parallel.gpu.CUDAKernel('pcry.ptx','pcry.cu','pcryCalculate_ACC');
