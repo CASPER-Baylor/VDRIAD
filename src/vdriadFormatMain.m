@@ -10,17 +10,17 @@ function vdriadFormatMain(app)
 %   various elements in the GUI.
 
     % GRAVITY SPINNER
-    app.GravitySpinner.Value = app.params.GRAVITY;
+    app.GravitySpinner.Value = app.Parameters.GRAVITY;
     app.GravitySpinner.Step = 0.1;
     app.GravitySpinner.Limits = [0 100];
     
     % PRESSURE SPINNER
-    app.PressureSpinner.Value = app.params.GAS_PRESSURE;
+    app.PressureSpinner.Value = app.Parameters.GAS_PRESSURE;
     app.PressureSpinner.Step = 0.1;
     app.PressureSpinner.Limits = [0.66 6];
 
     % POWER SPINNER
-    app.PowerSpinner.Value = app.params.CELL_POWER;
+    app.PowerSpinner.Value = app.Parameters.CELL_POWER;
     app.PowerSpinner.Step = 0.1;
     app.PowerSpinner.Limits = [1 20];
     

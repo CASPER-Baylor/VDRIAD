@@ -5,9 +5,9 @@ function vdriadDrawDust(app)
     % have them update whenever the first frame is not set
 
     dustSize = 50;
-    x = app.dust.h_x;
-    y = app.dust.h_y;
-    z = app.dust.h_z;
+    x = app.Dust.Position.Host.x;
+    y = app.Dust.Position.Host.y;
+    z = app.Dust.Position.Host.z;
 
     if app.firstFrame
         hold(app.UIAxes,'on')
@@ -22,7 +22,7 @@ function vdriadDrawDust(app)
         app.wakeAxes = scatter3(app.UIAxes,...
                                x,...
                                y,...
-                               z-(app.params.WAKE_LENGTH*10),...
+                               z-(app.Parameters.WAKE_LENGTH*10),...
                                5,'.r');
         hold(app.UIAxes,'off')
 
@@ -37,7 +37,7 @@ function vdriadDrawDust(app)
         % Update wake particles
         app.wakeAxes.XData = x;
         app.wakeAxes.YData = y;
-        app.wakeAxes.ZData = z-(app.params.WAKE_LENGTH*10);
+        app.wakeAxes.ZData = z-(app.Parameters.WAKE_LENGTH*10);
     end  
 
     label_time = sprintf("t = %.2fs",app.TOTAL_TIME);
