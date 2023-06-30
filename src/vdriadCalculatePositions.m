@@ -1,3 +1,4 @@
+% update variable names so that it matches syntax of calculateForces
 function dust = vdriadCalculatePositions(dust,params,kernel,totalTime);
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
