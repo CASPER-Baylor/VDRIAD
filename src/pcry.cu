@@ -92,8 +92,8 @@ __global__ void pcryCalculate_ACC(
 		posZ_i 	 = dustPosZ[i];
 		
 		// Load other attributes
-		charge_i = dustCharge[i];
-		mass_i	 = dustMass[i];
+	// hi	charge_i = dustCharge[i];
+	// hi	mass_i	 = dustMass[i];
 
         mass1   = dustMass[i];
         charge1 = dustCharge[i];
