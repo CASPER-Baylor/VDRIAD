@@ -250,7 +250,7 @@ __global__ void pcryCalculate_POS(
 			  	  float DUST_CHARGE_DENSITY_MEAN,
 			  	  float ELECTRON_CHARGE,
 				  float CUTOFF_M,  
-				  float WAKE_CHARGE_PERCENT, 
+				  float WAKE_CHARGE_RATIO, 
 				  float WAKE_LENGTH,
 				  float ION_DEBYE,
 				  float ELECTRON_DEBYE,
