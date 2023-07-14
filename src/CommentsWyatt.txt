@@ -1,0 +1,60 @@
+// Updating my ionwake percent charge and length below the dust if its distance to the its nearest dust grain is within debyeLengthMultiplier*debyeLengths.
+		// Also adding the percent charge that the upstream ionWake lost to the down stream ionWake.
+		// Need to do this before you update the positions or you will get a miss read on dy.
+		if(wakeDistanceZ[i] < 0.0){ // It was initialized to 100000.0 and if no dust grain is close enough it will stay -100000.0.
+			cutOff = CUTOFF_M*DEBYE;
+			// This is a quadratic function that goes from 1 to 0 as the dust-dust distance goes from debyeLengthMultiplier*debyeLength to zero.
+			// Using a second order because as the bottom dust ets close to the top dust it will be eating up a ring (second order) of ions that would have added to the ionwake.
+			// It will be used to decrease the top dust's ionwake and give this lose to the bottom dust's ionwake.
+			reduction = (1.0f - wakeDistanceR[i]*wakeDistanceR[i]/(cutOff*cutOff))*(wakeDistanceZ[i] /
+				     wakeDistanceR[i])*(wakeDistanceZ[i]/wakeDistanceR[i]);
+				     
+			
+			wakeCharge[i]		    = WAKE_CHARGE_PERCENT - WAKE_CHARGE_PERCENT*reduction;	// Decreasing the top charge
+			wakeCharge[wakeID[i]]	= WAKE_CHARGE_PERCENT + WAKE_CHARGE_PERCENT*reduction;	// Increasing the bottom charge
+			
+			// This is a linear that goes from 1 to 0 as the dust-dust distance goes from debyeLengthMultiplier*debyeLength to zero.
+			// Using a first order because the as the bottom dust moves up linearly it will displace a ring of ions that would have added to the ionwake.
+			// It will be used to decrease the top dust's ionwake length below the top dust.
+			//reduction = ionWake[id].z/cutOff;
+			reduction = (1.0f - wakeDistanceR[i]/(cutOff))*(wakeDistanceZ[i]/wakeDistanceR[i])*(wakeDistanceZ[i]/wakeDistanceR[i]);
+			wakeLength[i] = WAKE_LENGTH - WAKE_LENGTH*reduction;
+		} else{
+			// If for some reason the ionwake didn't get turned back on it is reset here.
+			wakeCharge[i] = WAKE_CHARGE_PERCENT;
+			wakeLength[i] = WAKE_LENGTH;
+		}	*/
+
+
+
+
+
+  /*
+		// Randomly perturbating the dust electron count. 
+		// This gets a little involved. I first get a standard normal distributed number (Mean 0 StDev 1).
+		// Then I set its StDev to the number of electrons that fluctuate per unit dust diameter for this dust grain size.
+		// Then I set the mean to how much above or below the base electron per unit dust size.
+		// ie. if it has more than it should it has a higher prob of losing and vice versa if it has less than it should.
+		// This is just what I came up with and it could be wrong but below is how I did this.
+		// dustPos.w carries the charge and dustVel.w carries the diameter.
+		
+		// Initailizing the cudarand function.
+		curand_init(clock64(), i, 0, &state);
+		// This gets a random number with mean 0.0 and stDev 1.0;.
+		randomNumber = curand_normal(&state);
+		// This sets the electron fluctuation for this sized dust grain and makes it the stDev.
+		randomNumber *= DUST_CHARGE_DENSITY_MEAN*(2 * dustRadius[i]);
+		
+		// This has a mean of zero which would just create a random walk. I don't think this is what you want.
+		// Dust grains with more electrons than they should have should in general loose electrons 
+		// and those with less than they should should in general gain more electrons.
+		// We will accomplish this by setting the mean to be the oposite of how much above or below 
+		// the base amount you are at this time.
+		// This works out to be base number - present number
+		randomNumber += DUST_CHARGE_DENSITY_MEAN*(2*dustRadius[i]) - dustCharge[i]/ELECTRON_CHARGE;
+		
+		// Now add/subtract this number of electron to the existing charge.
+    		dustCharge[i] += randomNumber*ELECTRON_CHARGE;
+	   
+	    	// If the amount of charge ends up being negative which probablistically it could, set it to zero
+	    	if(dustCharge[i] < 0.0) dustCharge[i] = 0.0;*/

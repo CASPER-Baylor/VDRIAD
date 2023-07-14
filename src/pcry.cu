@@ -247,14 +247,14 @@ __global__ void pcryCalculate_POS(
                   float* wakeDistanceZ,
                   float* wakeDistanceR,
 				  int* wakeID,
-			  	  float DUST_CHARGE_DENSITY_MEAN,
-			  	  float ELECTRON_CHARGE,
-				  float CUTOFF_M,  
-				  float WAKE_CHARGE_PERCENT, 
-				  float WAKE_LENGTH,
-				  float ION_DEBYE,
-				  float ELECTRON_DEBYE,
-				  float DT,
+
+
+				    
+				   
+				  
+				  
+				  
+				  
 				  float TIME,
 				  int 	NUM_PARTICLES){
 	// Moving the system forward in time with leap-frog and randomly adjusting the charge on each dust particle.
