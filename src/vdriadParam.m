@@ -47,6 +47,7 @@ classdef vdriadParam < handle
 		GRAVITY
 		CELL_POWER
 		TIME_STEP
+        CUTOFF_M
 	end
 
 	% Internal Properties
@@ -192,6 +193,7 @@ classdef vdriadParam < handle
             load = @(string) obj.loadParameter(obj.FileName,string);
 
             obj.BLOCK_SIZE              = load('BLOCK_SIZE');
+            obj.CUTOFF_M                = load('CUTOFF_MULTIPLIER');
     
             % GAS
             obj.GAS_TEMPERATURE         = load('GAS_TEMPERATURE');
