@@ -2,8 +2,8 @@
 
 __global__ void pcryCalculate_ACC(
                   float* dustPosX, float* dustPosY, float* dustPosZ,
-			  	  float* dustVelX, float* dustVelY, float* dustVelZ,
-			  	  float* dustAccX, float* dustAccY, float* dustAccZ,
+			  	        float* dustVelX, float* dustVelY, float* dustVelZ,
+			  	        float* dustAccX, float* dustAccY, float* dustAccZ,
                   float* dustRadius,
                   float* dustMass,
                   float* dustCharge,
@@ -11,107 +11,103 @@ __global__ void pcryCalculate_ACC(
                   float* wakeLength,
                   float* wakeDistanceZ,
                   float* wakeDistanceR,
-			  	  int* wakeID, 
-			  	  float DUST_RADIUS_MEAN,
-				  float COULOMB, 
-				  float ION_DEBYE,
-				  float ELECTRON_DEBYE,  
-				  float CUTOFF_M, 
-				  float CELL_RADIUS, 
-				  float CELL_CHARGE, 
-				  float CELL_HEIGHT, 
-				  float SHEATH_HEIGHT, 
-				  float WAKE_CHARGE_PERCENT,
-				  float GRAVITY, 
-				  float GAS_TEMP,
+			  	        int* wakeID, 
+			  	        float DUST_RADIUS_MEAN,
+				          float COULOMB, 
+				          float ION_DEBYE,
+				          float ELECTRON_DEBYE,  
+				          float CUTOFF_M, 
+				          float CELL_RADIUS, 
+				          float CELL_CHARGE, 
+				          float CELL_HEIGHT, 
+				          float SHEATH_HEIGHT, 
+				          float WAKE_CHARGE_PERCENT,
+				          float GRAVITY, 
+				          float GAS_TEMP,
                   float GAS_PRESSURE,
                   float TIME_STEP,
                   double TIME,
-				  int 	NUM_PARTICLES){
+				          int NUM_PARTICLES){
 			  
 	// VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
-	float 	acc;            // Temporarily stores acceleration
-    float   epsilon;        // Softening factor
-    float   Ez;             // Electric field by the lower electrode
+  float 	acc;            // Temporarily stores acceleration
+  float   epsilon;        // Softening factor
+  float   Ez;             // Electric field by the lower electrode
 
-    // ITH PARTICLE
-    float   x1;             // Stores the x position of the ith particle
-    float   y1;             // Stores the y position of the ith particle
-    float   z1;             // Stores the z position of the ith particle
-    float   ax1;            // x component of the accelaration of the ith particle
-    float   ay1;            // y component of the acceleration of the ith particle
-    float   az1;            // z component of the acceleration of the ith particle
-    float   mass1;          // mass of the ith particle
-    float   charge1;        // charge of the ith particle
-    float   radius1;        // radius of the ith particle
+  // ITH PARTICLE
+  float   x1;             // Stores the x position of the ith particle
+  float   y1;             // Stores the y position of the ith particle
+  float   z1;             // Stores the z position of the ith particle
+  float   ax1;            // x component of the accelaration of the ith particle
+  float   ay1;            // y component of the acceleration of the ith particle
+  float   az1;            // z component of the acceleration of the ith particle
+  float   mass1;          // mass of the ith particle
+  float   charge1;        // charge of the ith particle
+  float   radius1;        // radius of the ith particle
 
-    // JTH PARTICLE         !! This part should actually not be here, what wee need to replace is the variables below
-    float   x2;             // Stores the x position of the jth particle
-    float   y2;             // Stores the y position of the jth particle
-    float   z2;             // z position of the jth particle
+  // JTH PARTICLE         !! This part should actually not be here, what wee need to replace is the variables below
+  float   x2;             // Stores the x position of the jth particle
+  float   y2;             // Stores the y position of the jth particle
+  float   z2;             // z position of the jth particle
 
-    // OTHER VARIABLES
-    float   dx;             // Distance between the particles in the x direction
-    float   dy;             // Distance between the particles in the y direction
-    float   dz;             // Distance between the particles in the z direction
-    float   r_squared;      // Norm squared
-    float   r;              // Eucledian distance between the particles
-    float   r_soft;         // Eucledian distance with softening factor
-    float   r_min;
-    float   z_min;
-    float   yourId;
-    float   nn_id;
+  // OTHER VARIABLES
+  float   dx;             // Distance between the particles in the x direction
+  float   dy;             // Distance between the particles in the y direction
+  float   dz;             // Distance between the particles in the z direction
+  float   r_squared;      // Norm squared
+  float   r;              // Eucledian distance between the particles
+  float   r_soft;         // Eucledian distance with softening factor
+  float   r_min;
+  float   z_min;
+  float   yourId;
+  float   nn_id;
 
-	float 	accX_i, accY_i, accZ_i; 
-	float 	posX_i, posY_i, posZ_i;
-	float 	charge_i, mass_i;
+  float 	accX_i, accY_i, accZ_i; 
+  float 	posX_i, posY_i, posZ_i;
+  float 	charge_i, mass_i;
 
-    float   SIGMA;
-    float   BETA;
+  float   SIGMA;
+  float   BETA;
 
-    // STATE FOR GENERATING RANDOM NUMBER
-    curandState_t state;
+  // STATE FOR GENERATING RANDOM NUMBER
+  curandState_t state;
 
 
 	// VARIABLES TO BE ALLOCATED IN SHARED MEMORY
 	__shared__ float posX_j[BLOCK], posY_j[BLOCK], posZ_j[BLOCK];
 	__shared__ float charge_j[BLOCK], wakeCharge_j[BLOCK], wakeLength_j[BLOCK];
 
-    //------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------------
 	int i = threadIdx.x + blockDim.x*blockIdx.x;
 	if(i < NUM_PARTICLES){              // Making sure we are not out working past the number of particles
-        epsilon  = 1e-6;
+    epsilon  = 1e-6;
 
-		// Save positions
-        x1  = dustPosX[i];
-        y1  = dustPosY[i];
-        z1  = dustPosZ[i];
-        
-		posX_i 	 = dustPosX[i];
-		posY_i 	 = dustPosY[i];
-		posZ_i 	 = dustPosZ[i];
-		
-		// Load other attributes
-		charge_i = dustCharge[i];
-		mass_i	 = dustMass[i];
+    // Save positions
+    x1  = dustPosX[i];
+    y1  = dustPosY[i];
+    z1  = dustPosZ[i];
 
-        mass1   = dustMass[i];
-        charge1 = dustCharge[i];
-        radius1 = dustRadius[i];
-		
-		// Initialize forces
-		accX_i 	 = 0.0f;
-		accY_i 	 = 0.0f;
-		accZ_i 	 = 0.0f;
-		
-		// Other variables
-		r_min 	 = CUTOFF_M * ION_DEBYE;
-		z_min 	 = 100000.0;
-		nn_id 	 = -1;
+    posX_i 	 = dustPosX[i];
+    posY_i 	 = dustPosY[i];
+    posZ_i 	 = dustPosZ[i];
 
-		wakeDistanceR[i] = 10000.0f;
-		wakeDistanceZ[i] = 10000.0f;
-		wakeID[i]	 = -1;
+    mass1   = dustMass[i];
+    charge1 = dustCharge[i];
+    radius1 = dustRadius[i];
+
+    // Initialize forces
+    accX_i 	 = 0.0f;
+    accY_i 	 = 0.0f;
+    accZ_i 	 = 0.0f;
+
+    // Other variables
+    r_min 	 = CUTOFF_M * ION_DEBYE;
+    z_min 	 = 100000.0;
+    nn_id 	 = -1;
+
+    wakeDistanceR[i] = 10000.0f;
+    wakeDistanceZ[i] = 10000.0f;
+    wakeID[i]	 = -1;
 		
 		// CALCULATING INTERPARTICLE FORCES-----------------------------------------------------------------------------
 		for(int j = 0; j < gridDim.x; j++){
@@ -171,7 +167,7 @@ __global__ void pcryCalculate_ACC(
 
                     acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i);
                     acc		*=(1.0f + r/ELECTRON_DEBYE)*exp(-r/ELECTRON_DEBYE)/mass_i;
-			acc = 0;	
+			              acc = 0;	
                     accX_i 	+= acc * (dx/(r_soft*r_soft*r_soft));
                     accY_i 	+= acc * (dy/(r_soft*r_soft*r_soft));
                     accZ_i 	+= acc * (dz/(r_soft*r_soft*r_soft));
@@ -237,11 +233,11 @@ __global__ void pcryCalculate_ACC(
 
 __global__ void pcryCalculate_POS(
                   float* dustPosX, float* dustPosY, float* dustPosZ,
-				  float* dustVelX, float* dustVelY, float* dustVelZ,
-				  float* dustAccX, float* dustAccY, float* dustAccZ,
-				  float DT,
-				  float TIME,
-				  int 	NUM_PARTICLES){
+                  float* dustVelX, float* dustVelY, float* dustVelZ,
+                  float* dustAccX, float* dustAccY, float* dustAccZ,
+                  float DT,
+                  float TIME,
+                  int 	NUM_PARTICLES){
 	// Moving the system forward in time with leap-frog and randomly adjusting the charge on each dust particle.
 	curandState state;
 	float randomNumber;
@@ -250,7 +246,6 @@ __global__ void pcryCalculate_POS(
 	
 	// Note: DustForce.w hold the mass of the dust grain.
 	if(i < NUM_PARTICLES){
-		
 		if(TIME == 0.0f){
 			dustVelX[i] += 0.5f*DT*dustAccX[i];
 			dustVelY[i] += 0.5f*DT*dustAccY[i];
