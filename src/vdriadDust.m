@@ -107,6 +107,9 @@ classdef vdriadDust < handle
 
             % SAVE INITIAL CONDITIONS
             obj.saveInitialConditions;
+
+            % COPY ARRAYS TO DEVICE
+            obj.memoryCopy('HtoD','all')
         end
 
         % Name:             saveInitialConditions
@@ -158,7 +161,7 @@ classdef vdriadDust < handle
                 % COPY POSITIONS
                 obj.Position.Device.x = gpuArray(obj.Position.Host.x);
                 obj.Position.Device.y = gpuArray(obj.Position.Host.y);
-                obj.Postioin.Device.z = gpuArray(obj.Position.Host.z);
+                obj.Position.Device.z = gpuArray(obj.Position.Host.z);
         
                 if copyAll
                     % COPY VELOCITIES
@@ -177,7 +180,7 @@ classdef vdriadDust < handle
                     obj.Charge.Device   = gpuArray(obj.Charge.Host);
                     obj.Mass.Device     = gpuArray(obj.Mass.Host);
         
-                    obj.WakeChargePercent.Device  = gpuArray(obj.WakeChargePercent.Host);
+                    obj.WakeCharge.Device  = gpuArray(obj.WakeCharge.Host);
                     obj.WakeLength.Device         = gpuArray(obj.WakeLength.Host);
                     obj.WakeNNR.Device          = gpuArray(obj.WakeNNR.Host);
                     obj.WakeNNZ.Device          = gpuArray(obj.WakeNNZ.Host);
