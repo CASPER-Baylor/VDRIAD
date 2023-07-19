@@ -9,6 +9,7 @@ classdef vdriadParam < handle
 
     % Dynamic Parameters (Updated automatically by the simulation)
     properties (GetAccess=public,SetAccess=private)
+        DRAW_PERIOD
         BLOCK_SIZE
 		IONIZATION_FRAC
 		GAS_DENSITY
@@ -72,7 +73,7 @@ classdef vdriadParam < handle
         % Internal
         INIT = false;
        
-        DRAW_PERIOD
+        
     end
 
 	% Public Methods
@@ -92,7 +93,7 @@ classdef vdriadParam < handle
             obj.updateParameters();
 
             % Update remaining parameters
-            obj.TIME_STEP               = 0.0003;
+            obj.TIME_STEP               = 0.00005;
             obj.DRAW_PERIOD             = floor(1/(80 * obj.TIME_STEP));
             obj.DUST_RADIUS_MEAN        = obj.DUST_DIAMETER_MEAN / 2;
 

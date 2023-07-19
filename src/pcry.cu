@@ -144,9 +144,9 @@ __global__ void pcryCalculate_ACC(
                     acc  = -COULOMB*charge_j[yourSharedId]*charge_i*(1.0f+r/ION_DEBYE)*exp(-r/ION_DEBYE)/(r_soft*r_soft);
                     acc /= (mass_i);
 
-                    accX_i	+= acc * (dx/r_soft);
-                    accY_i 	+= acc * (dy/r_soft);
-                    accZ_i 	+= acc * (dz/r_soft);
+                    accX_i	+= 0; //acc * (dx/r_soft);
+                    accY_i 	+= 0; //acc * (dy/r_soft);
+                    accZ_i 	+= 0; //acc * (dz/r_soft);
 
                     // Finding the nearest neighbor below the current dust grain and within
                     // the specified distance (6 * ION_DEBYE)
@@ -171,10 +171,10 @@ __global__ void pcryCalculate_ACC(
 
                     acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i);
                     acc		*=(1.0f + r/ELECTRON_DEBYE)*exp(-r/ELECTRON_DEBYE)/mass_i;
-
-                    //accX_i 	+= acc * (dx/(r_soft*r_soft*r_soft));
-                    //accY_i 	+= acc * (dy/(r_soft*r_soft*r_soft));
-                    //accZ_i 	+= acc * (dz/(r_soft*r_soft*r_soft));
+			acc = 0;	
+                    accX_i 	+= acc * (dx/(r_soft*r_soft*r_soft));
+                    accY_i 	+= acc * (dy/(r_soft*r_soft*r_soft));
+                    accZ_i 	+= acc * (dz/(r_soft*r_soft*r_soft));
 				}
 			}
 		}
@@ -184,7 +184,7 @@ __global__ void pcryCalculate_ACC(
 		wakeID[i]			 	    = nn_id; 	// Saving the nearest neighbor's ID
 
         // CALCULATING EXTERNAL FORCES----------------------------------------------------------------------------------
-		Ez = -8083 + 553373*z1 + 2.0e8*(z1*z1) - 3.017e10*pow(z1,3) + 1.471e12*pow(z1,4) - 2.306e13*pow(z1,5);
+		Ez = 0;
 		accZ_i += charge1 * Ez / mass1;
 		
 		// RADIAL CONFINEMENT FORCE
@@ -216,7 +216,7 @@ __global__ void pcryCalculate_ACC(
         // LOAD FORCES--------------------------------------------------------------------------------------------------
         // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
         // force to zero and set its mass, charge and diameter to the base (maybe it was too heavy).
-		if(DUST_RADIUS_MEAN < posZ_i){
+		if(0 < posZ_i){
 			dustAccX[i] = accX_i;
 			dustAccY[i] = accY_i;
 			dustAccZ[i] = accZ_i;
