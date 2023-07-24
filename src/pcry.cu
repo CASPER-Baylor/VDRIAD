@@ -4,30 +4,31 @@ __global__ void pcryCalculate_ACC(
 		  float* dustPosX, float* dustPosY, float* dustPosZ,
 		  float* dustVelX, float* dustVelY, float* dustVelZ,
 		  float* dustAccX, float* dustAccY, float* dustAccZ,
-                  float* dustRadius,
-                  float* dustMass,
-                  float* dustCharge,
-                  float* wakeCharge,
-                  float* wakeLength,
-                  float* wakeDistanceZ,
-                  float* wakeDistanceR,
-		  int* wakeID, 
-	          float DUST_RADIUS_MEAN,
-		  float COULOMB, 
-		  float ION_DEBYE,
-		  float ELECTRON_DEBYE,  
-		  float CUTOFF_M, 
-	          float CELL_RADIUS, 
-		  float CELL_CHARGE, 
-		  float CELL_HEIGHT, 
-                  float SHEATH_HEIGHT, 
-		  float WAKE_CHARGE_PERCENT,
-		  float GRAVITY, 
-		  float GAS_TEMP,
-                  float GAS_PRESSURE,
-                  float TIME_STEP,
-                  double TIME,
-		  int NUM_PARTICLES){
+      float* dustRadius,
+      float* dustMass,
+      float* dustCharge,
+      float* wakeCharge,
+      float* wakeLength,
+      float* wakeDistanceZ,
+      float* wakeDistanceR,
+      int* wakeID, 
+      float DUST_RADIUS_MEAN,
+      float COULOMB, 
+      float ION_DEBYE,
+      float ELECTRON_DEBYE,  
+      float CUTOFF_M, 
+      float RADIAL_CONFINEMENT_COEFF,
+      float CELL_RADIUS, 
+      float E_FIELD_COEFF, 
+      float CELL_HEIGHT, 
+      float SHEATH_HEIGHT, 
+      float WAKE_CHARGE_PERCENT,
+      float GRAVITY, 
+      float GAS_TEMP,
+      float GAS_PRESSURE,
+      float TIME_STEP,
+      double TIME,
+      int NUM_PARTICLES){
 			  
   // VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
   float   acc;            // Temporarily stores acceleration
@@ -180,34 +181,41 @@ __global__ void pcryCalculate_ACC(
 		wakeID[i]			 	    = nn_id; 	// Saving the nearest neighbor's ID
 
         // CALCULATING EXTERNAL FORCES----------------------------------------------------------------------------------
-		Ez = 0;
+		if (z1 > SHEATH_HEIGHT){
+            Ez = 0;
+            }
+        else{
+            Ez = -2*E_FIELD_COEFF*(z1 - SHEATH_HEIGHT);
+        }
+
 		accZ_i += charge1 * Ez / mass1;
+
 		
 		// RADIAL CONFINEMENT FORCE
-		r  	= sqrt(x1*x1+y1*y1);
-		if(r != 0){
-		    acc = charge_i*CELL_CHARGE*pow(r/CELL_RADIUS,12)/mass_i;
-		    accX_i += acc * (posX_i/r);
-		    accY_i += acc * (posY_i/r);
-		}
+		// r 	= sqrt(x1*x1+y1*y1);
+		// if(r != 0){
+		//     acc = charge_i*RADIAL_CONFINEMENT_COEFF*pow(r/CELL_RADIUS,12)/mass_i;
+		//     accX_i += acc * (posX_i/r);
+		//     accY_i += acc * (posY_i/r);
+		// }
 
 		// GRAVITATIONAL FORCE
 		accZ_i += -GRAVITY;
 		
 		// DRAG FORCE
-        BETA = 1.44* 4.0 /3.0 * (radius1*radius1) * GAS_PRESSURE / mass1 * sqrt(8.0 * PI * ION_MASS/BOLTZMANN/GAS_TEMP);
-
-		accX_i += -BETA * dustVelX[i];
-		accY_i += -BETA * dustVelY[i];
-		accZ_i += -BETA * dustVelZ[i];
+        // BETA = 1.44* 4.0 /3.0 * (radius1*radius1) * GAS_PRESSURE / mass1 * sqrt(8.0 * PI * ION_MASS/BOLTZMANN/GAS_TEMP);
+        // 
+		// accX_i += -BETA * dustVelX[i];
+		// accY_i += -BETA * dustVelY[i];
+		// accZ_i += -BETA * dustVelZ[i];
 
         // BROWNIAN MOTION
-        curand_init((time_t)(TIME+i),0,0,&state);
-        SIGMA = sqrt(2.0* BETA * BOLTZMANN * GAS_TEMP/mass1/TIME_STEP);
-
-        accX_i += SIGMA * curand_normal(&state);
-        accY_i += SIGMA * curand_normal(&state);
-        accZ_i += SIGMA * curand_normal(&state);
+        // curand_init((time_t)(TIME+i),0,0,&state);
+        // SIGMA = sqrt(2.0* BETA * BOLTZMANN * GAS_TEMP/mass1/TIME_STEP);
+        // 
+        // accX_i += SIGMA * curand_normal(&state);
+        // accY_i += SIGMA * curand_normal(&state);
+        // accZ_i += SIGMA * curand_normal(&state);
 
         // LOAD FORCES--------------------------------------------------------------------------------------------------
         // If the dust grain gets too close or passes through the floor. I put it at the top of the sheath, set its
