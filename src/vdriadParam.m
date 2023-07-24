@@ -35,7 +35,7 @@ classdef vdriadParam < handle
         DUST_DIAMETER_STD
         DUST_CHARGE
 
-        CELL_CHARGE
+        RADIAL_CONFINEMENT_COEFF
         CELL_RADIUS
 		CELL_HEIGHT
 		E_FIELD_COEFF
@@ -93,7 +93,7 @@ classdef vdriadParam < handle
             obj.updateParameters();
 
             % Update remaining parameters
-            obj.TIME_STEP               = 0.00005;
+            obj.TIME_STEP               = 0.0005;
             obj.DRAW_PERIOD             = floor(1/(80 * obj.TIME_STEP));
             obj.DUST_RADIUS_MEAN        = obj.DUST_DIAMETER_MEAN / 2;
 
@@ -211,8 +211,8 @@ classdef vdriadParam < handle
             
             % CONSTANTS
             obj.GRAVITY                 = load('GRAVITY');
-            obj.CELL_CHARGE             = load('CELL_CHARGE');
             obj.CELL_POWER              = load('CELL_POWER');
+            obj.RADIAL_CONFINEMENT_COEFF = load('RADIAL_CONFINEMENT_COEFF');
             obj.CELL_RADIUS             = load('CELL_RADIUS');
             obj.CELL_HEIGHT             = load('CELL_HEIGHT');
         end
