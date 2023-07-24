@@ -1,37 +1,37 @@
 #include "pcry.cuh"
 
 __global__ void pcryCalculate_ACC(
-                  float* dustPosX, float* dustPosY, float* dustPosZ,
-			  	        float* dustVelX, float* dustVelY, float* dustVelZ,
-			  	        float* dustAccX, float* dustAccY, float* dustAccZ,
-                  float* dustRadius,
-                  float* dustMass,
-                  float* dustCharge,
-                  float* wakeCharge,
-                  float* wakeLength,
-                  float* wakeDistanceZ,
-                  float* wakeDistanceR,
-			  	        int* wakeID, 
-			  	        float DUST_RADIUS_MEAN,
-				          float COULOMB, 
-				          float ION_DEBYE,
-				          float ELECTRON_DEBYE,  
-				          float CUTOFF_M, 
-				          float RADIAL_CONFINEMENT_COEFF,
-                          float CELL_RADIUS, 
-				          float E_FIELD_COEFF, 
-				          float CELL_HEIGHT, 
-				          float SHEATH_HEIGHT, 
-				          float WAKE_CHARGE_PERCENT,
-				          float GRAVITY, 
-				          float GAS_TEMP,
-                  float GAS_PRESSURE,
-                  float TIME_STEP,
-                  double TIME,
-				          int NUM_PARTICLES){
+		  float* dustPosX, float* dustPosY, float* dustPosZ,
+		  float* dustVelX, float* dustVelY, float* dustVelZ,
+		  float* dustAccX, float* dustAccY, float* dustAccZ,
+      float* dustRadius,
+      float* dustMass,
+      float* dustCharge,
+      float* wakeCharge,
+      float* wakeLength,
+      float* wakeDistanceZ,
+      float* wakeDistanceR,
+      int* wakeID, 
+      float DUST_RADIUS_MEAN,
+      float COULOMB, 
+      float ION_DEBYE,
+      float ELECTRON_DEBYE,  
+      float CUTOFF_M, 
+      float RADIAL_CONFINEMENT_COEFF,
+      float CELL_RADIUS, 
+      float E_FIELD_COEFF, 
+      float CELL_HEIGHT, 
+      float SHEATH_HEIGHT, 
+      float WAKE_CHARGE_PERCENT,
+      float GRAVITY, 
+      float GAS_TEMP,
+      float GAS_PRESSURE,
+      float TIME_STEP,
+      double TIME,
+      int NUM_PARTICLES){
 			  
-	// VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
-  float 	acc;            // Temporarily stores acceleration
+  // VARIABLE DICTIONARY----------------------------------------------------------------------------------------------
+  float   acc;            // Temporarily stores acceleration
   float   epsilon;        // Softening factor
   float   Ez;             // Electric field by the lower electrode
 
@@ -56,16 +56,16 @@ __global__ void pcryCalculate_ACC(
   float   dy;             // Distance between the particles in the y direction
   float   dz;             // Distance between the particles in the z direction
   float   r_squared;      // Norm squared
-  float   r;              // Eucledian distance between the particles
-  float   r_soft;         // Eucledian distance with softening factor
+  float   r;              // Euclidean distance between the particles
+  float   r_soft;         // Euclidian distance with softening factor
   float   r_min;
   float   z_min;
   float   yourId;
   float   nn_id;
 
-  float 	accX_i, accY_i, accZ_i; 
-  float 	posX_i, posY_i, posZ_i;
-  float 	charge_i, mass_i;
+  float   accX_i, accY_i, accZ_i; 
+  float   posX_i, posY_i, posZ_i;
+  float   charge_i, mass_i;
 
   float   SIGMA;
   float   BETA;
@@ -74,9 +74,9 @@ __global__ void pcryCalculate_ACC(
   curandState_t state;
 
 
-	// VARIABLES TO BE ALLOCATED IN SHARED MEMORY
-	__shared__ float posX_j[BLOCK], posY_j[BLOCK], posZ_j[BLOCK];
-	__shared__ float charge_j[BLOCK], wakeCharge_j[BLOCK], wakeLength_j[BLOCK];
+  // VARIABLES TO BE ALLOCATED IN SHARED MEMORY
+  __shared__ float posX_j[BLOCK], posY_j[BLOCK], posZ_j[BLOCK];
+  __shared__ float charge_j[BLOCK], wakeCharge_j[BLOCK], wakeLength_j[BLOCK];
 
   //------------------------------------------------------------------------------------------------------------------
 	int i = threadIdx.x + blockDim.x*blockIdx.x;
