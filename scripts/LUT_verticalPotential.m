@@ -11,6 +11,10 @@ TPotential = TPotential(:,["Pressure","Power","z","V"]);
 TSheath = readtable('../data/Couedel_PhysRevE_105_015210_fig08_sheathHeight.xlsx');
 TSheath = TSheath(:,["Pressure","Power","z0"]);
 
+% Perform unit conversions
+TPotential.z = TPotential.z * 1e-3;
+TSheath.z0 = TSheath.z0 *1e-3;
+
 %% PROCESS DATA TO OBTAIN QUADRATIC FITS
 % Array to store the coefficient of the parabola
 beta = zeros(numel(TSheath.z0),1);
@@ -35,23 +39,26 @@ for i = 1:numel(pressureVals)
         % Index to Data
         idx = (TPotential.Pressure == pressure) & (TPotential.Power == power);
         z = TPotential.z(idx);
-        V = TPotential.V(idx);
+        Zh = TPotential.V(idx);
 
         idy = (TSheath.Pressure == pressure) & (TSheath.Power == power);
         z0 = TSheath.z0(idy);
 
         % Fit parabola and determine query points
         xq = linspace(0,z0,100);
-        par.b0 = fitParabola(z,V,0);
+        par.b0 = fitParabola(z,Zh,0);
         beta(idy) = par.b0;
         par.x0 = 0;
         
-        % ===== RECREATE ORIGINAL PLOTS
+        zRange = [0 10] * 1e-3;
+        % ===== RECREATE ORIGINAL PLOTS ===================================
         subplot(3,3,i)
         hold on
-        plotFit(z,V,xq,color(j),par);
+        plotFit(z,Zh,xq,color(j),par);
         hold off
         xline(z0,':r')
+        xticks([])
+        xlim(zRange);
 
         title(sprintf("$p_{Ar}=%0.1f$ Pa",pressure),'Interpreter','latex')
         if i == 1; ylabel('$V_p(V)$','Interpreter','latex'); end
@@ -63,15 +70,17 @@ for i = 1:numel(pressureVals)
 
         % Fit parabola
         xq = linspace(0,z0,100);
-        par.b0 = fitParabola(z,V,z0);
+        par.b0 = fitParabola(z,Zh,z0);
         par.x0 = z0;
         
-        % ===== CREATE SHIFTED PLOTS AND NEW PARABOLAS
+        % ===== CREATE SHIFTED PLOTS AND NEW PARABOLAS ====================
         subplot(3,3,i+3)
         hold on
-        plotFit(z,V,xq,color(j),par);
+        plotFit(z,Zh,xq,color(j),par);
         hold off
         xline(z0,':r')
+        xticks([])
+        xlim(zRange)
 
         if i == 1; ylabel('$V_p(V)$ (shifted)','Interpreter','latex'); end
         ylim(ylimPotential);
@@ -82,25 +91,26 @@ for i = 1:numel(pressureVals)
         plotElectricField(xq,color(j),par);
         hold off
 
-        if i == 1; ylabel('$E(V/cm)$','Interpreter','latex'); end
-        xlabel('$z(cm)$','Interpreter','latex')
-        ylim([-50 0])
+        if i == 1; ylabel('$E(V/m)$','Interpreter','latex'); end
+        xlabel('$z(m)$','Interpreter','latex')
+        xlim(zRange)
     end
 end
 
 %% ORGANIZE DATA TO OBTAIN 2D INTERPOLATION
-
 % X: Pressure
 % Y: Power
 [X,Y] = meshgrid(pressureVals,powerVals);
 
 % V: This is the height of the sheath, but also the point x0 around which
-%    the parabola is centerd
-V = reshape(TSheath.z0,numel(powerVals),numel(pressureVals));
+%    the parabola is centerd. 
+%    Perform unit conversion so that [Zh] = [m]
+Zh = reshape(TSheath.z0,numel(powerVals),numel(pressureVals));
 
 % W: This is the parameter that defines the parabola equivalent to 
-%    b0 in the expression b0(x-x0)^2
-W = reshape(beta,numel(powerVals),numel(pressureVals));
+%    b0 in the expression b0(x-x0)^2. 
+%    Perform unit conversion so that [Beta] = [V/m]
+Beta = reshape(beta,numel(powerVals),numel(pressureVals));
 
 % Define query points for interpolation
 xq = linspace(pressureVals(1),pressureVals(end),20);
@@ -110,23 +120,23 @@ yq = linspace(powerVals(1),powerVals(end),20);
 figure
 % Plot sheath height
 subplot(1,2,1)
-surf(Xq,Yq,interp2(X,Y,V,Xq,Yq));
+surf(Xq,Yq,interp2(X,Y,Zh,Xq,Yq));
 
 title('Sheath height as function of Pressure and Power')
 xlabel('Pressure [Pa]')
 ylabel('Power [W]')
-zlabel("$h_s[cm]$",'Interpreter','latex','FontSize',20)
+zlabel("$h_s[m]$",'Interpreter','latex','FontSize',20)
 
 % Plot the slope of the electric field
 subplot(1,2,2)
-surf(Xq,Yq,interp2(X,Y,(-2*W),Xq,Yq));
+surf(Xq,Yq,interp2(X,Y,(-2*Beta),Xq,Yq));
 
 title('Electric field steepness as a function of Pressure and Power')
 xlabel('Pressure [Pa]')
 ylabel('Power [W]')
 zlabel("$\frac{dE}{dz}$ [$\frac{V}{cm^2}$]",'Interpreter','latex','FontSize',20)
 
-% Store data in struct
+% Store data in struct and perform unit conversions
 LUT.Name = "LUT02";
 LUT.Label = ["Pressure";
              "Power";
@@ -134,8 +144,8 @@ LUT.Label = ["Pressure";
              "Beta"];
 LUT.Pressure = X;
 LUT.Power = Y;
-LUT.SheathHeight = V;
-LUT.Beta = W;
+LUT.SheathHeight = Zh;
+LUT.Beta = Beta;
 
 function plotFit(x,y,xq,color,par)
     % Evaluate parabola at query points
