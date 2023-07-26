@@ -168,7 +168,7 @@ __global__ void pcryCalculate_ACC(
 
                     acc 	= (COULOMB*charge_j[yourSharedId]*wakeCharge_j[yourSharedId]*charge_i);
                     acc		*=(1.0f + r/ELECTRON_DEBYE)*exp(-r/ELECTRON_DEBYE)/mass_i;
-			              acc = 0;	
+			        acc = 0; // This is just for testing
                     accX_i 	+= acc * (dx/(r_soft*r_soft*r_soft));
                     accY_i 	+= acc * (dy/(r_soft*r_soft*r_soft));
                     accZ_i 	+= acc * (dz/(r_soft*r_soft*r_soft));
@@ -203,11 +203,11 @@ __global__ void pcryCalculate_ACC(
 		accZ_i += -GRAVITY;
 		
 		// DRAG FORCE
-        // BETA = 1.44* 4.0 /3.0 * (radius1*radius1) * GAS_PRESSURE / mass1 * sqrt(8.0 * PI * ION_MASS/BOLTZMANN/GAS_TEMP);
-        // 
-		// accX_i += -BETA * dustVelX[i];
-		// accY_i += -BETA * dustVelY[i];
-		// accZ_i += -BETA * dustVelZ[i];
+         BETA = 1.44* 4.0 /3.0 * (radius1*radius1) * GAS_PRESSURE / mass1 * sqrt(8.0 * PI * ION_MASS/BOLTZMANN/GAS_TEMP);
+         
+		 // accX_i += -BETA * dustVelX[i];
+		 accY_i += -BETA * dustVelY[i];
+		 accZ_i += -BETA * dustVelZ[i];
 
         // BROWNIAN MOTION
         // curand_init((time_t)(TIME+i),0,0,&state);
