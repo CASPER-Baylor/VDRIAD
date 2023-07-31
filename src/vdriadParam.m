@@ -93,9 +93,7 @@ classdef vdriadParam < handle
             obj.updateParameters();
 
             % Update remaining parameters
-            obj.TIME_STEP               = 0.0005;
-            % obj.DRAW_PERIOD             = floor(1/(80 * obj.TIME_STEP));
-            obj.DRAW_PERIOD             = 10;
+            obj.TIME_STEP               = 0.0001
             obj.DUST_RADIUS_MEAN        = obj.DUST_DIAMETER_MEAN / 2;
 
             % Initialize 
