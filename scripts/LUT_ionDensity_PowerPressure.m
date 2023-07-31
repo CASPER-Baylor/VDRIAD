@@ -9,6 +9,9 @@
 T = readtable('../data/Couedel_PhysRevE_105_015210_fig02.xlsx');
 T = T(:,["Pressure","Power","Density"]);
 
+% Perform unit conversion
+T.Density = T.Density * 1e6;
+
 pressure_vals = unique(T.Pressure);
 power_vals = unique(T.Power);
 
